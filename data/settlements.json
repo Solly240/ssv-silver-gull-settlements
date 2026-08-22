@@ -1,0 +1,1133 @@
+{
+ "version": "1.0.0",
+ "cities": [
+  {
+   "id": "frostwatch-landing",
+   "name": "Frostwatch Landing",
+   "region": "Vorrn-7 Moon \u00b7 Shattered Expanse",
+   "faction": null,
+   "law": 1,
+   "shopLocationId": "vorrn-7",
+   "playlist": "Frostwatch \u2014 Wind and Generators",
+   "blurb": "A frontier survey outpost bolted to the ice: a landing pad, a cluster of prefab habs linked by heated walkways, and just enough trade to keep the lights on. Nobody owns it. Whatever is here answers to itself.",
+   "art": {
+    "day": "assets/cities/frostwatch-day.webp",
+    "night": "assets/cities/frostwatch-night.webp"
+   },
+   "locations": [
+    {
+     "id": "the-frostwatch-tab",
+     "name": "The Frostwatch Tab",
+     "kind": "cantina",
+     "hotspot": {
+      "x": 0.492,
+      "y": 0.585
+     },
+     "blurb": "The only warm room on the moon that will sell you a drink. Everyone passes through eventually.",
+     "gmNotes": "Quest hook: 'The Frostwatch Tab' \u2014 a departed spacer's unpaid bill.",
+     "openHours": [
+      "dusk",
+      "night",
+      "day"
+     ],
+     "quest": true,
+     "interior": {
+      "gridSize": 64,
+      "img": "assets/interiors/frostwatch-the-frostwatch-tab.webp",
+      "darkness": 0.6,
+      "artSubject": "a frontier cantina on a frozen ice moon",
+      "geometry": {
+       "size": [
+        1536,
+        1024
+       ],
+       "walls": [
+        [
+         172,
+         58,
+         1470,
+         58
+        ],
+        [
+         246,
+         84,
+         402,
+         84
+        ],
+        [
+         421,
+         84,
+         790,
+         84
+        ],
+        [
+         839,
+         84,
+         993,
+         84
+        ],
+        [
+         1029,
+         85,
+         1447,
+         85
+        ],
+        [
+         632,
+         100,
+         799,
+         100
+        ],
+        [
+         1160,
+         111,
+         1337,
+         111
+        ],
+        [
+         445,
+         121,
+         948,
+         121
+        ],
+        [
+         1165,
+         120,
+         1335,
+         120
+        ],
+        [
+         1094,
+         144,
+         1435,
+         144
+        ],
+        [
+         567,
+         159,
+         771,
+         159
+        ],
+        [
+         818,
+         174,
+         960,
+         174
+        ],
+        [
+         1118,
+         223,
+         1429,
+         223
+        ],
+        [
+         437,
+         220,
+         988,
+         220
+        ],
+        [
+         438,
+         277,
+         959,
+         277
+        ],
+        [
+         504,
+         287,
+         742,
+         287
+        ],
+        [
+         1049,
+         308,
+         1410,
+         308
+        ],
+        [
+         1022,
+         416,
+         1264,
+         416
+        ],
+        [
+         1163,
+         420,
+         1453,
+         420
+        ],
+        [
+         721,
+         609,
+         997,
+         609
+        ],
+        [
+         267,
+         692,
+         405,
+         692
+        ],
+        [
+         266,
+         725,
+         400,
+         725
+        ],
+        [
+         489,
+         737,
+         724,
+         737
+        ],
+        [
+         517,
+         762,
+         666,
+         762
+        ],
+        [
+         768,
+         874,
+         994,
+         874
+        ],
+        [
+         1266,
+         900,
+         1423,
+         900
+        ],
+        [
+         1110,
+         901,
+         1254,
+         901
+        ],
+        [
+         162,
+         68,
+         162,
+         812
+        ],
+        [
+         188,
+         352,
+         188,
+         493
+        ],
+        [
+         265,
+         180,
+         265,
+         377
+        ],
+        [
+         723,
+         763,
+         723,
+         910
+        ],
+        [
+         750,
+         679,
+         750,
+         873
+        ],
+        [
+         995,
+         292,
+         995,
+         611
+        ],
+        [
+         1023,
+         270,
+         1023,
+         419
+        ],
+        [
+         1023,
+         444,
+         1023,
+         694
+        ],
+        [
+         1024,
+         700,
+         1024,
+         876
+        ],
+        [
+         1088,
+         123,
+         1088,
+         406
+        ],
+        [
+         1134,
+         256,
+         1134,
+         410
+        ],
+        [
+         1148,
+         533,
+         1148,
+         873
+        ],
+        [
+         1174,
+         696,
+         1174,
+         872
+        ],
+        [
+         1348,
+         270,
+         1348,
+         402
+        ],
+        [
+         1452,
+         89,
+         1452,
+         420
+        ],
+        [
+         1454,
+         446,
+         1454,
+         867
+        ],
+        [
+         1480,
+         68,
+         1480,
+         920
+        ]
+       ],
+       "lights": [
+        {
+         "x": 592,
+         "y": 154,
+         "area": 104,
+         "dim": 170,
+         "bright": 70,
+         "color": "#ffb066",
+         "alpha": 0.35
+        },
+        {
+         "x": 594,
+         "y": 151,
+         "area": 300,
+         "dim": 170,
+         "bright": 70,
+         "color": "#ffb066",
+         "alpha": 0.35
+        },
+        {
+         "x": 782,
+         "y": 154,
+         "area": 282,
+         "dim": 170,
+         "bright": 70,
+         "color": "#ffb066",
+         "alpha": 0.35
+        }
+       ],
+       "doors": [
+        [
+         268,
+         706,
+         412,
+         706
+        ]
+       ],
+       "exits": [
+        {
+         "x": 262,
+         "y": 712,
+         "w": 156,
+         "h": 150
+        }
+       ],
+       "spawns": [
+        {
+         "x": 340,
+         "y": 660
+        }
+       ],
+       "posts": {
+        "1": {
+         "x": 700,
+         "y": 210
+        },
+        "2": {
+         "x": 300,
+         "y": 470
+        }
+       },
+       "waypoints": [
+        {
+         "tag": "a",
+         "x": 560,
+         "y": 470
+        },
+        {
+         "tag": "b",
+         "x": 860,
+         "y": 470
+        },
+        {
+         "tag": "c",
+         "x": 560,
+         "y": 640
+        },
+        {
+         "tag": "d",
+         "x": 880,
+         "y": 640
+        }
+       ]
+      }
+     },
+     "chatter": [
+      "\u2026and then the rings just ate the whole signal. Gone.",
+      "Third rover this season. Third.",
+      "Don't touch the ice near Pad Two. Don't.",
+      "You're new. You'll be cold for a week, then you won't notice.",
+      "Whoever's broadcasting out there, they've been at it a long while."
+     ],
+     "npcs": [
+      {
+       "key": "sallis-kord",
+       "post": "1",
+       "name": "Sallis Kord",
+       "role": "Barkeep",
+       "actor": "Sallis Kord",
+       "portrait": "assets/portraits/sallis-kord.webp",
+       "shopId": "shop-vorrn-7-cantina",
+       "wander": false,
+       "quest": true,
+       "blurb": "Broad, unhurried, and missing two fingers on the pouring hand. Has run the Tab for eleven years and can price a stranger before they reach the counter.",
+       "talkingPoints": [
+        "You'll be the ones who came down hard on the north flats. Heard your engines from here.",
+        "Fuel's at the pad. Ilsa's at the hab. Anything else, you talk to me.",
+        "There's a tab on my board nobody's paid. Man shipped out and left it. I'd take it kindly if somebody settled it."
+       ],
+       "rumours": [
+        "Something out on the ice has been transmitting since before I got here. Nobody's ever gone to look twice.",
+        "There's people living in the glacier east of here. They come in once a season, buy filters, say nothing.",
+        "The administrator's reactor is browning out. She won't say it, but she's frightened."
+       ]
+      },
+      {
+       "key": "merrow-vane",
+       "post": "2",
+       "name": "Merrow Vane",
+       "role": "Drunk prospector",
+       "portrait": "assets/portraits/merrow-vane.webp",
+       "wander": true,
+       "radius": 4,
+       "blurb": "Three drinks past sensible and delighted to see new faces. Was a good surveyor once.",
+       "talkingPoints": [
+        "You want to know about the ice? I'll tell you about the ice."
+       ],
+       "rumours": [
+        "I mapped the whole eastern shelf. There's a hollow under it. Sounds wrong when you drill.",
+        "Kesh at the yard has something in the back he won't put on the shelf."
+       ]
+      },
+      {
+       "key": "tab-regular-1",
+       "spawnArea": "a",
+       "name": "Regular",
+       "wander": true,
+       "crowd": true,
+       "radius": 5
+      },
+      {
+       "key": "tab-regular-2",
+       "spawnArea": "b",
+       "name": "Regular",
+       "wander": true,
+       "crowd": true,
+       "radius": 5
+      },
+      {
+       "key": "tab-regular-3",
+       "spawnArea": "c",
+       "name": "Off-shift hand",
+       "wander": true,
+       "crowd": true,
+       "radius": 6
+      },
+      {
+       "key": "tab-regular-4",
+       "spawnArea": "d",
+       "name": "Off-shift hand",
+       "wander": true,
+       "crowd": true,
+       "radius": 6
+      }
+     ]
+    },
+    {
+     "id": "the-trade-post",
+     "name": "The Trade Post",
+     "kind": "shop",
+     "hotspot": {
+      "x": 0.609,
+      "y": 0.622
+     },
+     "blurb": "Ration crates, patch kits, filament, and whatever the last ship couldn't sell elsewhere.",
+     "openHours": [
+      "dawn",
+      "day",
+      "dusk"
+     ],
+     "interior": {
+      "gridSize": 100,
+      "theme": "frontier-prefab",
+      "img": "assets/interiors/frostwatch-the-trade-post.webp",
+      "darkness": 0.5,
+      "lights": {
+       "L": {
+        "dim": 28,
+        "bright": 12,
+        "color": "#e8f4ff",
+        "alpha": 0.3
+       }
+      },
+      "artSubject": "a frontier general store and trade post",
+      "artProps": "tall stocked shelving on the shelf blocks, open crates and barrels of goods, a weighing scale and ledger on the counter, ration cartons, coils of filament, hanging tools, a floor mat by the door",
+      "plan": [
+       "##################",
+       "#....L......L....#",
+       "#................#",
+       "#.===..===..===..#",
+       "#.===..===..===..#",
+       "#.......a........#",
+       "#..============..#",
+       "#..=1.........=..#",
+       "#..==========....#",
+       "#.b....SS.....c..#",
+       "#................#",
+       "#.......XX.......#",
+       "########++########"
+      ]
+     },
+     "chatter": [
+      "Filters are up again. Everything's up.",
+      "If it isn't on the shelf, it isn't on the moon."
+     ],
+     "npcs": [
+      {
+       "key": "otta-brill",
+       "post": "1",
+       "name": "Otta Brill",
+       "role": "Post keeper",
+       "actor": "Otta Brill",
+       "portrait": "assets/portraits/otta-brill.webp",
+       "shopId": "shop-vorrn-7-general-store",
+       "wander": false,
+       "blurb": "Small, brisk, and entirely unimpressed by anyone's story. Prices are the prices.",
+       "talkingPoints": [
+        "Shelf price is shelf price. You want a discount, bring me something I can sell.",
+        "Water filters, three left. After that you drink what the ice gives you."
+       ],
+       "rumours": [
+        "The glacier folk buy filters by the crate. Somebody out there has a lot of mouths."
+       ]
+      },
+      {
+       "key": "post-browser-1",
+       "spawnArea": "a",
+       "name": "Browsing spacer",
+       "wander": true,
+       "crowd": true,
+       "radius": 5
+      },
+      {
+       "key": "post-browser-2",
+       "spawnArea": "b",
+       "name": "Dock hand",
+       "wander": true,
+       "crowd": true,
+       "radius": 6
+      },
+      {
+       "key": "post-browser-3",
+       "spawnArea": "c",
+       "name": "Survey tech",
+       "wander": true,
+       "crowd": true,
+       "radius": 6
+      }
+     ]
+    },
+    {
+     "id": "the-bonefield",
+     "name": "The Bonefield",
+     "kind": "salvage",
+     "hotspot": {
+      "x": 0.81,
+      "y": 0.645
+     },
+     "blurb": "A fenced acre of frozen wreckage. Pay the yardmaster and pick the bones.",
+     "openHours": [
+      "dawn",
+      "day",
+      "dusk"
+     ],
+     "quest": true,
+     "interior": {
+      "gridSize": 100,
+      "theme": "ice-yard",
+      "img": "assets/interiors/frostwatch-the-bonefield.webp",
+      "darkness": 0.7,
+      "tokenVision": true,
+      "lights": {
+       "L": {
+        "dim": 34,
+        "bright": 12,
+        "color": "#cfe8ff",
+        "alpha": 0.26
+       }
+      },
+      "artSubject": "a fenced salvage yard of frozen ship wreckage under open sky on an ice moon",
+      "artProps": "great broken hull sections and torn plating heaped inside the fence, cutting gear and gas bottles, a small covered kiosk in the middle, cable spools, drifted snow, vehicle tracks in the ice",
+      "plan": [
+       "######################",
+       "#,,,,,L,,,,,,,,L,,,,,#",
+       "#,,===,,,,,,,,,,,==,,#",
+       "#,,===,,,,a,,,,,,==,,#",
+       "#,,,,,,,,,,,,,,,,,,,,#",
+       "#,,,,,,,====,,,,,,,,,#",
+       "#,,b,,,,=1,=,,,,,,c,,#",
+       "#,,,,,,,==,=,,,,,,,,,#",
+       "#,,,,,,,,,,,,,,2,,,,,#",
+       "#,,==,,,,,,,,,,,,==,,#",
+       "#,,==,,,,SS,,,,,,==,,#",
+       "#,,,,,,,,,,,,,,,,,,,,#",
+       "#,,,,,,,,XX,,,,,,,,,,#",
+       "##########++##########"
+      ]
+     },
+     "chatter": [
+      "Mind the edges. Everything out here is edges.",
+      "That hull's been here longer than the outpost."
+     ],
+     "npcs": [
+      {
+       "key": "kesh-duval",
+       "post": "1",
+       "name": "Kesh Duval",
+       "role": "Yardmaster",
+       "actor": "Kesh Duval",
+       "portrait": "assets/portraits/kesh-duval.webp",
+       "shopId": "shop-vorrn-7-salvage-yard",
+       "wander": false,
+       "quest": true,
+       "blurb": "Wrapped in three coats and a welding rig. Knows the provenance of every plate in the yard.",
+       "talkingPoints": [
+        "Pick rights are by the hour. Cut what you like, I weigh it on the way out.",
+        "Anything with a Concord stamp, you bring to me first. That's the deal."
+       ],
+       "rumours": [
+        "I've a piece in the back I can't identify. Not Concord. Not anything.",
+        "Ilsa's missing rover \u2014 I'd look east, and I'd take a gun."
+       ]
+      },
+      {
+       "key": "yard-cutter",
+       "post": "2",
+       "name": "Yard cutter",
+       "wander": true,
+       "crowd": true,
+       "radius": 6
+      },
+      {
+       "key": "yard-hand-1",
+       "spawnArea": "b",
+       "name": "Yard hand",
+       "wander": true,
+       "crowd": true,
+       "radius": 7
+      },
+      {
+       "key": "yard-hand-2",
+       "spawnArea": "c",
+       "name": "Yard hand",
+       "wander": true,
+       "crowd": true,
+       "radius": 7
+      }
+     ]
+    },
+    {
+     "id": "administrators-hab",
+     "name": "Administrator's Hab",
+     "kind": "admin",
+     "hotspot": {
+      "x": 0.456,
+      "y": 0.478
+     },
+     "blurb": "The outpost's office, its records, and the moon's only quest board.",
+     "quest": true,
+     "interior": {
+      "gridSize": 100,
+      "theme": "frontier-prefab",
+      "img": "assets/interiors/frostwatch-administrators-hab.webp",
+      "darkness": 0.45,
+      "lights": {
+       "L": {
+        "dim": 24,
+        "bright": 10,
+        "color": "#dff0ff",
+        "alpha": 0.32
+       }
+      },
+      "artSubject": "the cramped office of a frontier outpost administrator",
+      "artProps": "a desk with terminals and paperwork, filing lockers, a wall of pinned notices and a quest board, a stove, folding chairs, cable runs, a worn floor rug",
+      "plan": [
+       "################",
+       "#...L......L...#",
+       "#..............#",
+       "#..=========...#",
+       "#..=1......=...#",
+       "#..=======.....#",
+       "#....a....b....#",
+       "#.....2........#",
+       "#......SS......#",
+       "#..............#",
+       "#......XX......#",
+       "#######++#######"
+      ]
+     },
+     "chatter": [
+      "The tap's browning out again.",
+      "She's been up two nights."
+     ],
+     "npcs": [
+      {
+       "key": "ilsa-varn",
+       "post": "1",
+       "name": "Ilsa Varn",
+       "role": "Outpost administrator",
+       "actor": "Ilsa Varn",
+       "portrait": "assets/portraits/ilsa-varn.webp",
+       "wander": false,
+       "quest": true,
+       "blurb": "Rattled and hiding it badly. Running an outpost on a failing fusion tap and no help coming.",
+       "talkingPoints": [
+        "You have a ship. That already makes you the most useful thing to land here this year.",
+        "The fusion tap is browning out. I need parts I cannot get and cannot pay for.",
+        "A supply rover went east eleven days ago and did not come back. Two people on it."
+       ],
+       "rumours": [
+        "I log every transmission. There is one I have never been able to file.",
+        "Salvage-pick rights across the whole shelf are mine to grant. They are worth more than money to the right crew."
+       ]
+      },
+      {
+       "key": "hab-clerk",
+       "post": "2",
+       "name": "Records clerk",
+       "wander": true,
+       "crowd": true,
+       "radius": 4
+      }
+     ]
+    },
+    {
+     "id": "the-warmroom",
+     "name": "The Warmroom",
+     "kind": "medbay",
+     "hotspot": {
+      "x": 0.355,
+      "y": 0.492
+     },
+     "blurb": "Two beds, a printer, and a medtech who has seen every kind of cold injury there is.",
+     "interior": {
+      "gridSize": 100,
+      "theme": "frontier-prefab",
+      "img": "assets/interiors/frostwatch-the-warmroom.webp",
+      "darkness": 0.3,
+      "lights": {
+       "L": {
+        "dim": 26,
+        "bright": 14,
+        "color": "#eafcff",
+        "alpha": 0.36
+       }
+      },
+      "artSubject": "a small frontier medical bay",
+      "artProps": "two medical beds with rumpled sheets on the block furniture, a tissue printer and monitors, supply lockers, an instrument trolley, a drain in the floor, clean pale surfaces",
+      "plan": [
+       "################",
+       "#...L......L...#",
+       "#..............#",
+       "#.==...==...==.#",
+       "#.==...==...==.#",
+       "#....a....b....#",
+       "#..=========...#",
+       "#..=1.......=..#",
+       "#..========....#",
+       "#......SS......#",
+       "#..............#",
+       "#......XX......#",
+       "#######++#######"
+      ]
+     },
+     "chatter": [
+      "Keep it elevated.",
+      "You'll keep the fingers. Probably."
+     ],
+     "npcs": [
+      {
+       "key": "corrin-ash",
+       "post": "1",
+       "name": "Corrin Ash",
+       "role": "Medtech",
+       "actor": "Corrin Ash",
+       "portrait": "assets/portraits/corrin-ash.webp",
+       "shopId": "shop-vorrn-7-medbay",
+       "wander": false,
+       "blurb": "Calm to the point of unnerving. Treats everyone, bills afterwards, never asks how it happened.",
+       "talkingPoints": [
+        "Sit. Whatever you came in with, it's worse than you think.",
+        "I stock what keeps people alive out here. It isn't cheap and it isn't optional."
+       ],
+       "rumours": [
+        "The glacier colony sends someone for medical supplies. Never the same person twice."
+       ]
+      },
+      {
+       "key": "warm-patient",
+       "spawnArea": "a",
+       "name": "Patient",
+       "wander": true,
+       "crowd": true,
+       "radius": 3
+      }
+     ]
+    },
+    {
+     "id": "pad-three",
+     "name": "Pad Three",
+     "kind": "pad",
+     "hotspot": {
+      "x": 0.231,
+      "y": 0.788
+     },
+     "blurb": "Where the Gull is standing. Fuel lines, ice-melt gantries, and the way back off this rock.",
+     "interior": {
+      "gridSize": 100,
+      "theme": "ice-yard",
+      "img": "assets/interiors/frostwatch-pad-three.webp",
+      "darkness": 0.72,
+      "lights": {
+       "L": {
+        "dim": 30,
+        "bright": 8,
+        "color": "#ffd27a",
+        "alpha": 0.3
+       }
+      },
+      "artSubject": "a circular starship landing pad cut into ice, open to the sky",
+      "artProps": "painted landing circle markings worn thin, fuel gantries and hose runs, ice-melt grates, chained cargo pallets, floodlight masts, scorch marks, drifted snow around the rim",
+      "plan": [
+       "####################",
+       "#,,,,L,,,,,,,,L,,,,#",
+       "#,,,,,,,,,,,,,,,,,,#",
+       "#,,,~~~~~~~~~~~~,,,#",
+       "#,,,~,,,,,,,,,,~,,,#",
+       "#,,a~,,,,,,,,,,~b,,#",
+       "#,,,~,,,,,,,,,,~,,,#",
+       "#,,,~~~~~~~~~~~~,,,#",
+       "#,,,,,,,,,,,,,,,,,,#",
+       "#,,==,,,,,,,,,1,,,,#",
+       "#,,==,,,SS,,,,,,,,,#",
+       "#,,,,,,,,,,,,,,,,,,#",
+       "#,,,,,,,XX,,,,,,,,,#",
+       "########++##########"
+      ]
+     },
+     "chatter": [
+      "Lines are cold. Give it a minute.",
+      "Don't stand under the gantry."
+     ],
+     "npcs": [
+      {
+       "key": "grig-tallow",
+       "post": "1",
+       "name": "Grig Tallow",
+       "role": "Fuel handler",
+       "actor": "Grig Tallow",
+       "portrait": "assets/portraits/grig-tallow.webp",
+       "shopId": "shop-vorrn-7-fuel-depot",
+       "wander": false,
+       "blurb": "Enormous coat, tiny voice. Pumps reaction mass and cracks ring-ice into water.",
+       "talkingPoints": [
+        "Tanks first. Everything else on this moon is optional.",
+        "I can crack you water out of the ring ice. Takes a day. Costs less than you'd think."
+       ],
+       "rumours": [
+        "Ships come in dark sometimes and don't log. I don't ask and neither should you."
+       ]
+      },
+      {
+       "key": "pad-crew-1",
+       "spawnArea": "a",
+       "name": "Pad crew",
+       "wander": true,
+       "crowd": true,
+       "radius": 6
+      },
+      {
+       "key": "pad-crew-2",
+       "spawnArea": "b",
+       "name": "Pad crew",
+       "wander": true,
+       "crowd": true,
+       "radius": 6
+      }
+     ]
+    },
+    {
+     "id": "the-back-shed",
+     "name": "The Back Shed",
+     "kind": "den",
+     "hotspot": {
+      "x": 0.912,
+      "y": 0.792
+     },
+     "state": "hidden",
+     "blurb": "Behind the yard, past the fence line. You would only know it was here if somebody told you.",
+     "gmNotes": "Reveal once a PC hears about it \u2014 Kesh's 'piece in the back', or Merrow's rumour. api.reveal('the-back-shed') from a macro, or the GM cog.",
+     "openHours": [
+      "dusk",
+      "night"
+     ],
+     "interior": {
+      "gridSize": 100,
+      "theme": "frontier-prefab",
+      "img": "assets/interiors/frostwatch-the-back-shed.webp",
+      "darkness": 0.82,
+      "lights": {
+       "l": {
+        "dim": 12,
+        "bright": 3,
+        "color": "#8fe8b0",
+        "alpha": 0.3
+       }
+      },
+      "artSubject": "a cramped smuggler's back room hidden behind a salvage yard",
+      "artProps": "a counter of contraband, locked strongboxes, a single hooded lamp, stacked unmarked crates, a tarpaulin, scattered tools, deep shadow",
+      "plan": [
+       "##############",
+       "#....l.......#",
+       "#..==========#",
+       "#..=1.......=#",
+       "#..=======...#",
+       "#...a....b...#",
+       "#.....SS.....#",
+       "#............#",
+       "#.....XX.....#",
+       "######//######"
+      ]
+     },
+     "chatter": [
+      "Keep your voice down."
+     ],
+     "npcs": [
+      {
+       "key": "the-quiet-man",
+       "post": "1",
+       "name": "The Quiet Man",
+       "role": "Fence",
+       "actor": "The Quiet Man",
+       "portrait": "assets/portraits/the-quiet-man.webp",
+       "shopId": "shop-vorrn-7-fence",
+       "wander": false,
+       "blurb": "Never gives a name. Buys anything, asks nothing, and pays in hard currency.",
+       "talkingPoints": [
+        "You were told where to find me, so I'll assume you were told how this works.",
+        "I don't want the story. I want the thing."
+       ],
+       "rumours": [
+        "There's a Concord surveyor holed up at Sett with a chart worth more than this moon."
+       ]
+      },
+      {
+       "key": "shed-lookout",
+       "spawnArea": "b",
+       "name": "Lookout",
+       "wander": true,
+       "crowd": true,
+       "radius": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "kettle-hollow",
+   "name": "Kettle Hollow",
+   "region": "Vorrn-7 Moon \u00b7 Shattered Expanse",
+   "faction": null,
+   "law": 2,
+   "shopLocationId": "vorrn-7",
+   "playlist": "Kettle Hollow \u2014 Under the Ice",
+   "blurb": "A colony carved into the body of a glacier, on no registry anywhere. Meltwater runs in channels down the middle of every hall. They did not expect visitors and they are not pleased to have them.",
+   "art": {
+    "day": "assets/cities/kettle-hollow-day.webp",
+    "night": "assets/cities/kettle-hollow-night.webp"
+   },
+   "locations": [
+    {
+     "id": "the-ice-gate",
+     "name": "The Ice Gate",
+     "kind": "gate",
+     "hotspot": {
+      "x": 0.5,
+      "y": 0.72
+     },
+     "blurb": "A cut in the glacier face, watched by two wardens who would rather you left.",
+     "interior": {
+      "gridSize": 100,
+      "theme": "ice-yard",
+      "img": "assets/interiors/kettle-the-ice-gate.webp",
+      "darkness": 0.75,
+      "lights": {
+       "L": {
+        "dim": 22,
+        "bright": 8,
+        "color": "#9fd8ff",
+        "alpha": 0.3
+       }
+      },
+      "artSubject": "a guarded gate cut into the face of a blue glacier, open to the sky",
+      "artProps": "a heavy barrier across the cut, sandbagged watch posts, floodlights, meltwater channels, boot-tracked snow, stacked supply crates",
+      "plan": [
+       "################",
+       "#,,,,L,,,,L,,,,#",
+       "#,,============#",
+       "#,,,,,,,,,,,,,,#",
+       "#,,a,,1,,2,,b,,#",
+       "#,,,,,,,,,,,,,,#",
+       "#,,,,,,SS,,,,,,#",
+       "#,,,,,,,,,,,,,,#",
+       "#,,,,,,XX,,,,,,#",
+       "#######++#######"
+      ]
+     },
+     "chatter": [
+      "State your business.",
+      "Nobody comes here by accident."
+     ],
+     "npcs": [
+      {
+       "key": "warden-a",
+       "post": "1",
+       "name": "Gate warden",
+       "role": "Warden",
+       "wander": false,
+       "blurb": "Ice-crusted rebreather, old rifle, no interest in conversation.",
+       "talkingPoints": [
+        "Turn around.",
+        "You'll speak to her or you'll speak to no one."
+       ]
+      },
+      {
+       "key": "warden-b",
+       "post": "2",
+       "name": "Gate warden",
+       "role": "Warden",
+       "wander": false,
+       "blurb": "Younger. Keeps glancing at the older one."
+      },
+      {
+       "key": "gate-runner",
+       "spawnArea": "a",
+       "name": "Runner",
+       "wander": true,
+       "crowd": true,
+       "radius": 5
+      }
+     ]
+    },
+    {
+     "id": "hollow-hall",
+     "name": "The Hollow Hall",
+     "kind": "hab",
+     "hotspot": {
+      "x": 0.42,
+      "y": 0.44
+     },
+     "state": "locked",
+     "lockedReason": "The wardens will not let you past the gate",
+     "blurb": "The colony's common hall, blue-lit through forty metres of ice.",
+     "interior": {
+      "gridSize": 100,
+      "theme": "ice-yard",
+      "img": "assets/interiors/kettle-hollow-hall.webp",
+      "darkness": 0.6,
+      "lights": {
+       "L": {
+        "dim": 28,
+        "bright": 10,
+        "color": "#bfe6ff",
+        "alpha": 0.32
+       }
+      },
+      "artSubject": "the common hall of a colony carved into glacier ice",
+      "artProps": "long trestle tables and benches, a cooking range along the counter, hanging lamps, meltwater channels running down the middle of the floor, blue ice walls, stacked bedrolls and crates",
+      "plan": [
+       "##################",
+       "#....L......L....#",
+       "#................#",
+       "#..===========...#",
+       "#..=1.........=..#",
+       "#..==========....#",
+       "#...a.......b....#",
+       "#......2.........#",
+       "#.......SS.......#",
+       "#................#",
+       "#.......XX.......#",
+       "########++########"
+      ]
+     },
+     "npcs": [
+      {
+       "key": "colony-leader",
+       "post": "1",
+       "name": "The Hollow's Keeper",
+       "role": "Colony leader",
+       "wander": false,
+       "quest": true,
+       "blurb": "Old, unhurried, and entirely used to deciding who lives here.",
+       "talkingPoints": [
+        "We are not on your charts because we asked not to be.",
+        "We need medicine, reactor parts and water filters. We have things to trade that you have not seen."
+       ],
+       "rumours": [
+        "The signal in the ice was here before we were. We do not go that way."
+       ]
+      },
+      {
+       "key": "hollow-cook",
+       "post": "2",
+       "name": "Cook",
+       "wander": true,
+       "crowd": true,
+       "radius": 5
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

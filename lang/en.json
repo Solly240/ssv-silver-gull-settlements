@@ -1,0 +1,13 @@
+{
+  "ssv-silver-gull-settlements.control": "Settlement view",
+  "ssv-silver-gull-settlements.keybind.open.name": "Open the settlement view",
+  "ssv-silver-gull-settlements.keybind.open.hint": "Show the town or city the crew are standing in, and the interesting places they can walk into.",
+  "ssv-silver-gull-settlements.settings.wander.name": "Wandering NPCs",
+  "ssv-silver-gull-settlements.settings.wander.hint": "Background NPCs drift around inside settlement interiors. Pauses automatically during combat and when nobody is looking at the scene.",
+  "ssv-silver-gull-settlements.settings.chatter.name": "Idle chatter",
+  "ssv-silver-gull-settlements.settings.chatter.hint": "Occasional one-line speech bubbles from the locals.",
+  "ssv-silver-gull-settlements.settings.autoLockInCombat.name": "Lock the exits during combat",
+  "ssv-silver-gull-settlements.settings.autoLockInCombat.hint": "While a combat is running in a settlement interior, hide the Leave button and stop the doorway from sending anyone back to the hub.",
+  "ssv-silver-gull-settlements.settings.wanderMs.name": "NPC step interval (ms)",
+  "ssv-silver-gull-settlements.settings.wanderMs.hint": "How often wandering NPCs take a step. Lower is livelier and chattier on the network."
+}
