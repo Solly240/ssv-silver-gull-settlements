@@ -501,13 +501,15 @@
 .sgset *{box-sizing:border-box;}
 /* Foundry's own button and typography rules leak in, and inline spans inside a flex button
    collapse on top of one another. Everything below is a defence against that. */
-.sgset button{font-family:inherit;color:inherit;cursor:pointer;background:none;border:none;
-  margin:0;line-height:1.35;text-align:left;white-space:normal;text-shadow:none;
-  box-shadow:none;border-radius:0;height:auto;min-height:0;width:auto;}
+.sgset button,.sgset [role="button"]{font-family:inherit;color:inherit;cursor:pointer;
+  background:none;border:none;margin:0;line-height:1.35;text-align:left;white-space:normal;
+  text-shadow:none;box-shadow:none;border-radius:0;
+  height:auto;min-height:0;max-height:none;width:auto;}
 .sgset button:hover,.sgset button:focus{box-shadow:none;outline:none;}
-.sgset .sgset-loc .body,.sgset .sgset-loc .blurb,
-.sgset .sgset-loc .sgset-tags,.sgset .sgset-loc .sgset-who{display:block;}
-.sgset .sgset-loc .glyph{display:flex;}
+.sgset .sgset-loc .body{display:block;flex:1 1 auto;min-width:0;}
+.sgset .sgset-loc .blurb{display:block;}
+.sgset .sgset-loc .sgset-tags,.sgset .sgset-loc .sgset-who{display:flex;flex-wrap:wrap;}
+.sgset .sgset-loc .glyph{display:flex;flex:0 0 30px;}
 
 /* ---- stage (the settlement artwork) ---- */
 .sgset-stage{position:relative;flex:1 1 auto;overflow:hidden;display:flex;
@@ -586,7 +588,11 @@
 .sgset-list{flex:1 1 auto;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:7px;}
 .sgset-loc{border:1px solid var(--edge);border-radius:10px;background:rgba(9,24,36,.72);
   padding:10px 11px;display:flex;gap:11px;align-items:flex-start;text-align:left;width:100%;
+  cursor:pointer;overflow:hidden;font:inherit;color:inherit;
+  height:auto;min-height:0;max-height:none;line-height:1.4;white-space:normal;
   transition:border-color .15s,background .15s,transform .12s;}
+.sgset .sgset-loc>*{white-space:normal;}
+.sgset-loc:focus-visible{outline:1px solid var(--teal);outline-offset:2px;}
 .sgset-loc:hover{border-color:var(--edge2);background:rgba(14,38,54,.82);transform:translateX(-2px);}
 .sgset-loc.is-blocked{cursor:default;opacity:.62;}
 .sgset-loc.is-blocked:hover{border-color:var(--edge);background:rgba(9,24,36,.72);transform:none;}
@@ -865,15 +871,16 @@
     if (l.locked) tags.push(`<span class="sgset-tag locked">${esc(reason)}</span>`);
     if (l.gmOnly) tags.push(`<span class="sgset-tag gm">Hidden from players</span>`);
     return `
-<button class="sgset-loc ${l.enterable ? "" : "is-blocked"}" data-act="enter" data-loc="${esc(l.id)}">
-  <span class="glyph">${k.glyph}</span>
-  <span class="body">
-    <span class="name">${esc(l.name)}</span>
-    ${l.blurb ? `<span class="blurb">${esc(l.blurb)}</span>` : ""}
-    ${tags.length ? `<span class="sgset-tags">${tags.join("")}</span>` : ""}
-    ${l.here.length ? `<span class="sgset-who">${l.here.map((u) => `<span class="sgset-pip">${esc(userLabel(ctx, u))}</span>`).join("")}</span>` : ""}
-  </span>
-</button>`;
+<div class="sgset-loc ${l.enterable ? "" : "is-blocked"}" role="button" tabindex="0"
+     data-act="enter" data-loc="${esc(l.id)}">
+  <div class="glyph">${k.glyph}</div>
+  <div class="body">
+    <div class="name">${esc(l.name)}</div>
+    ${l.blurb ? `<div class="blurb">${esc(l.blurb)}</div>` : ""}
+    ${tags.length ? `<div class="sgset-tags">${tags.join("")}</div>` : ""}
+    ${l.here.length ? `<div class="sgset-who">${l.here.map((u) => `<span class="sgset-pip">${esc(userLabel(ctx, u))}</span>`).join("")}</div>` : ""}
+  </div>
+</div>`;
   }
 
   function partyFootHtml(locs, ctx) {
@@ -970,6 +977,9 @@
       ctx.enter(l.id);
     };
     on('[data-act="enter"]', "click", (e) => tryEnter(e.currentTarget));
+    on('[data-act="enter"]', "keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); tryEnter(e.currentTarget); }
+    });
     on('[data-act="hot"]', "click", (e) => tryEnter(e.currentTarget));
     on('[data-act="hot"]', "mouseenter", (e) => { uiState.activeLoc = e.currentTarget.dataset.loc; });
 

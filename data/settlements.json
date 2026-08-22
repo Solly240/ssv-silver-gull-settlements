@@ -12,8 +12,68 @@
    "blurb": "A frontier survey outpost bolted to the ice: a landing pad, a cluster of prefab habs linked by heated walkways, and just enough trade to keep the lights on. Nobody owns it. Whatever is here answers to itself.",
    "art": {
     "day": "assets/cities/frostwatch-day.webp",
+    "dawn": "assets/cities/frostwatch-dawn.webp",
+    "dusk": "assets/cities/frostwatch-dusk.webp",
     "night": "assets/cities/frostwatch-night.webp"
    },
+   "lamps": [
+    {
+     "x": 0.231,
+     "y": 0.788,
+     "r": 0.017,
+     "power": 0.9,
+     "colour": "#ffb35e"
+    },
+    {
+     "x": 0.3,
+     "y": 0.8,
+     "r": 0.009,
+     "power": 0.6
+    },
+    {
+     "x": 0.355,
+     "y": 0.492,
+     "r": 0.009,
+     "power": 1.0
+    },
+    {
+     "x": 0.4,
+     "y": 0.52,
+     "r": 0.007,
+     "power": 0.7
+    },
+    {
+     "x": 0.456,
+     "y": 0.478,
+     "r": 0.009,
+     "power": 1.0
+    },
+    {
+     "x": 0.492,
+     "y": 0.585,
+     "r": 0.01,
+     "power": 1.0
+    },
+    {
+     "x": 0.552,
+     "y": 0.605,
+     "r": 0.007,
+     "power": 0.7
+    },
+    {
+     "x": 0.609,
+     "y": 0.622,
+     "r": 0.01,
+     "power": 1.0
+    },
+    {
+     "x": 0.81,
+     "y": 0.645,
+     "r": 0.012,
+     "power": 0.35,
+     "colour": "#9fd0ff"
+    }
+   ],
    "locations": [
     {
      "id": "the-frostwatch-tab",
@@ -1026,8 +1086,37 @@
    "blurb": "A colony carved into the body of a glacier, on no registry anywhere. Meltwater runs in channels down the middle of every hall. They did not expect visitors and they are not pleased to have them.",
    "art": {
     "day": "assets/cities/kettle-hollow-day.webp",
+    "dawn": "assets/cities/kettle-hollow-dawn.webp",
+    "dusk": "assets/cities/kettle-hollow-dusk.webp",
     "night": "assets/cities/kettle-hollow-night.webp"
    },
+   "lamps": [
+    {
+     "x": 0.5,
+     "y": 0.72,
+     "r": 0.013,
+     "power": 0.9
+    },
+    {
+     "x": 0.42,
+     "y": 0.44,
+     "r": 0.015,
+     "power": 1.0,
+     "colour": "#ffc98a"
+    },
+    {
+     "x": 0.33,
+     "y": 0.55,
+     "r": 0.009,
+     "power": 0.6
+    },
+    {
+     "x": 0.58,
+     "y": 0.52,
+     "r": 0.009,
+     "power": 0.6
+    }
+   ],
    "locations": [
     {
      "id": "the-ice-gate",
