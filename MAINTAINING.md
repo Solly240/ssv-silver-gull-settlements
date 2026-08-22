@@ -231,11 +231,22 @@ only be opened by clicking its shopkeeper. The GM is never gated.
 
 ## 8. Gotchas
 
-- **Escape** is handled by a capture-phase listener that bails out if a Foundry dialog has
-  focus, then closes the NPC card, then the hub.
+- **Escape goes through `game.keybindings`, never a raw listener.** It is registered at
+  `KEYBINDING_PRECEDENCE.PRIORITY` and returns `false` when neither the card nor the hub is
+  open, which hands the key straight back to Foundry's own dismiss handler.
+
+  It was previously a capture-phase `window` listener calling `stopImmediatePropagation()`.
+  Do not go back to that. Anything such a listener swallows is gone for good, and while an
+  overlay flag was stale Escape never reached Foundry at all — no main menu until the player
+  rejoined the world. `SilverGullSettlements.closeAll()` is the console escape hatch if an
+  overlay ever gets stuck again.
 - **Token clicks** are intercepted by monkey-patching `CONFIG.Token.objectClass.prototype._onClickLeft`
   once, in `ready`. A GM holding **Alt** gets the normal select behaviour so tokens stay
   editable. No libWrapper dependency, matching the rest of the repo.
+
+  **Always call the original handler**, then open the card. Returning early instead left the
+  canvas interaction manager mid-click, and a stuck interaction state eats Escape until the
+  page is reloaded. Selecting the token as well is harmless; wedging the canvas is not.
 - **The side-panel rows are `div role=button`, not `<button>`.** Foundry's global button
   rules (a fixed `height`, `line-height: 1`, `white-space: nowrap`) repeatedly broke the row
   layout and pushed the tag chips out onto the card above. The row restates its own box —

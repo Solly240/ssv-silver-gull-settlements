@@ -9,5 +9,7 @@
   "ssv-silver-gull-settlements.settings.autoLockInCombat.name": "Lock the exits during combat",
   "ssv-silver-gull-settlements.settings.autoLockInCombat.hint": "While a combat is running in a settlement interior, hide the Leave button and stop the doorway from sending anyone back to the hub.",
   "ssv-silver-gull-settlements.settings.wanderMs.name": "NPC step interval (ms)",
-  "ssv-silver-gull-settlements.settings.wanderMs.hint": "How often wandering NPCs take a step. Lower is livelier and chattier on the network."
+  "ssv-silver-gull-settlements.settings.wanderMs.hint": "How often wandering NPCs take a step. Lower is livelier and chattier on the network.",
+  "ssv-silver-gull-settlements.keybind.dismiss.name": "Close the settlement view",
+  "ssv-silver-gull-settlements.keybind.dismiss.hint": "Closes the NPC card, then the settlement view. When neither is open the key is passed straight through to Foundry."
 }

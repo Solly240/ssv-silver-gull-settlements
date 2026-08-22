@@ -188,7 +188,13 @@ function toggleHub() {
 
 function drawHub() {
   if (!hubOpen()) return;
-  S().renderCity(hubRoot(), buildCtx());
+  try {
+    S().renderCity(hubRoot(), buildCtx());
+  } catch (e) {
+    console.error(`${MODULE_ID} | could not draw the settlement view`, e);
+    closeHub();
+    ui.notifications?.error("The settlement view failed to draw — see the console.");
+  }
 }
 
 /* ------------------------------------------------------------------ *
@@ -904,8 +910,11 @@ function patchTokenClick() {
       const KM = globalThis.KeyboardManager ?? foundry.helpers?.interaction?.KeyboardManager;
       const altHeld = KM && game.keyboard?.isModifierActive?.(KM.MODIFIER_KEYS.ALT);
       if (npcKey && !(game.user.isGM && altHeld)) {
+        // Run Foundry's handler first and *then* open the card. Returning early here left
+        // the canvas interaction manager mid-click, which wedged Escape until reload.
+        const result = original.call(this, event);
         openNpcCard(this.document);
-        return;
+        return result;
       }
     } catch (e) { /* fall through to Foundry's own handler */ }
     return original.call(this, event);
@@ -954,6 +963,25 @@ Hooks.once("init", () => {
     range: { min: 800, max: 8000, step: 100 },
   });
 
+  /* Escape closes our overlays, and otherwise gets out of the way.
+   *
+   * This used to be a capture-phase window listener that called stopImmediatePropagation.
+   * That is a bad way to take a key off Foundry: anything it swallows is gone, and a
+   * stale overlay flag meant Escape stopped reaching Foundry's own dismiss handler
+   * entirely — no main menu until you rejoined. Registering at PRIORITY and returning
+   * false when we have nothing open hands the key straight back to core. */
+  game.keybindings.register(MODULE_ID, "dismiss", {
+    name: game.i18n.localize(`${MODULE_ID}.keybind.dismiss.name`),
+    hint: game.i18n.localize(`${MODULE_ID}.keybind.dismiss.hint`),
+    editable: [{ key: "Escape" }],
+    precedence: CONST.KEYBINDING_PRECEDENCE?.PRIORITY ?? 0,
+    onDown: () => {
+      if (cardOpen()) { closeCard(); return true; }
+      if (hubOpen()) { closeHub(); return true; }
+      return false;
+    },
+  });
+
   game.keybindings.register(MODULE_ID, "open", {
     name: game.i18n.localize(`${MODULE_ID}.keybind.open.name`),
     hint: game.i18n.localize(`${MODULE_ID}.keybind.open.hint`),
@@ -984,6 +1012,9 @@ Hooks.on("getSceneControlButtons", (controls) => {
 Hooks.once("ready", async () => {
   await loadContent();
   hubRoot().style.display = "none";
+  hubRoot().innerHTML = "";
+  closeCard();
+  leaveRoot().innerHTML = "";
 
   if (game.user.isGM) {
     const state = getState();
@@ -1001,22 +1032,13 @@ Hooks.once("ready", async () => {
   Hooks.on("updateCombat", (combat) => setCombatLock(combatLocId(combat), !!combat.started));
   Hooks.on("deleteCombat", (combat) => setCombatLock(combatLocId(combat), false));
 
-  // Escape closes the card, then the hub — matching the other SSV modules.
-  window.addEventListener("keydown", (ev) => {
-    if (ev.key !== "Escape") return;
-    if (document.querySelector(".dialog, .application.dialog, dialog[open]")) return;
-    if (cardOpen()) { closeCard(); }
-    else if (hubOpen()) { closeHub(); }
-    else return;
-    ev.preventDefault();
-    ev.stopImmediatePropagation();
-  }, true);
-
   drawLeave();
 
   const api = {
     open: openHub,
     close: closeHub,
+    /** Escape hatch: shut every overlay this module owns, from the console. */
+    closeAll: () => { closeCard(); closeHub(); leaveRoot().innerHTML = ""; },
     toggle: toggleHub,
     enter: requestEnter,
     leave: requestLeave,
