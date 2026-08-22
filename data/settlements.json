@@ -408,6 +408,13 @@
        "actor": "Sallis Kord",
        "portrait": "assets/portraits/sallis-kord.webp",
        "shopId": "shop-vorrn-7-cantina",
+       "shop": {
+        "type": "cantina",
+        "locationId": "vorrn-7",
+        "wealth": 2,
+        "size": "small",
+        "name": "The Frostwatch Tab"
+       },
        "wander": false,
        "quest": true,
        "blurb": "Broad, unhurried, and missing two fingers on the pouring hand. Has run the Tab for eleven years and can price a stranger before they reach the counter.",
@@ -531,6 +538,13 @@
        "actor": "Otta Brill",
        "portrait": "assets/portraits/otta-brill.webp",
        "shopId": "shop-vorrn-7-general-store",
+       "shop": {
+        "type": "general-store",
+        "locationId": "vorrn-7",
+        "wealth": 2,
+        "size": "small",
+        "name": "The Trade Post"
+       },
        "wander": false,
        "blurb": "Small, brisk, and entirely unimpressed by anyone's story. Prices are the prices.",
        "talkingPoints": [
@@ -628,6 +642,13 @@
        "actor": "Kesh Duval",
        "portrait": "assets/portraits/kesh-duval.webp",
        "shopId": "shop-vorrn-7-salvage-yard",
+       "shop": {
+        "type": "salvage-yard",
+        "locationId": "vorrn-7",
+        "wealth": 2,
+        "size": "small",
+        "name": "The Bonefield"
+       },
        "wander": false,
        "quest": true,
        "blurb": "Wrapped in three coats and a welding rig. Knows the provenance of every plate in the yard.",
@@ -794,6 +815,13 @@
        "actor": "Corrin Ash",
        "portrait": "assets/portraits/corrin-ash.webp",
        "shopId": "shop-vorrn-7-medbay",
+       "shop": {
+        "type": "medbay",
+        "locationId": "vorrn-7",
+        "wealth": 2,
+        "size": "stall",
+        "name": "The Warmroom"
+       },
        "wander": false,
        "blurb": "Calm to the point of unnerving. Treats everyone, bills afterwards, never asks how it happened.",
        "talkingPoints": [
@@ -868,6 +896,13 @@
        "actor": "Grig Tallow",
        "portrait": "assets/portraits/grig-tallow.webp",
        "shopId": "shop-vorrn-7-fuel-depot",
+       "shop": {
+        "type": "fuel-depot",
+        "locationId": "vorrn-7",
+        "wealth": 2,
+        "size": "small",
+        "name": "Pad Three Fuel"
+       },
        "wander": false,
        "blurb": "Enormous coat, tiny voice. Pumps reaction mass and cracks ring-ice into water.",
        "talkingPoints": [
@@ -951,6 +986,13 @@
        "actor": "The Quiet Man",
        "portrait": "assets/portraits/the-quiet-man.webp",
        "shopId": "shop-vorrn-7-fence",
+       "shop": {
+        "type": "fence",
+        "locationId": "vorrn-7",
+        "wealth": 1,
+        "size": "stall",
+        "name": "The Back Shed"
+       },
        "wander": false,
        "blurb": "Never gives a name. Buys anything, asks nothing, and pays in hard currency.",
        "talkingPoints": [

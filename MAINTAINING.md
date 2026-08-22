@@ -196,6 +196,13 @@ the matching shop type to that location's `seed` list and rebuild the catalogue.
 Arriving in a settlement calls the shop's `setLocation(city.shopLocationId)` so region and
 scarcity pricing are right, and so the shop's own "are the crew docked here" guard passes.
 
+**Missing shops heal themselves.** The shop module seeds worlds from its own catalogue and
+deliberately *skips* a world that already has shops — so a world seeded before a shopkeeper
+was added never gets that shop, and clicking the keeper produced "That shop is gone." Every
+shopkeeper therefore carries a `shop` spec (`type`, `locationId`, `wealth`, `size`, `name`)
+and `ensureShopsFor()` mints anything missing when someone enters the location. Add a
+shopkeeper and you must add that spec, or the console warns and the keeper stays mute.
+
 **Lockdown.** Shop v0.1.3 added a world setting *Players may browse shops freely*, off by
 default: with it off, `I` and the shop toolbar button do nothing for players, and a shop can
 only be opened by clicking its shopkeeper. The GM is never gated.
@@ -209,8 +216,17 @@ only be opened by clicking its shopkeeper. The GM is never gated.
 - **Token clicks** are intercepted by monkey-patching `CONFIG.Token.objectClass.prototype._onClickLeft`
   once, in `ready`. A GM holding **Alt** gets the normal select behaviour so tokens stay
   editable. No libWrapper dependency, matching the rest of the repo.
+- **Scenes are gridless by default** (`interior.gridless: false` opts back into a square
+  grid). The maps are illustrated art whose architecture never lines up with a square grid,
+  so drawing one over the top just fights the picture.
 - **The wander engine** runs on the active GM only, pauses when a combat is running in that
   scene, when nobody is viewing it, and when the venue is shut for the current time of day.
+- **NPCs move in pixels, not cells.** Each one keeps a small mind in memory (`minds`): pick
+  somewhere to stand, walk there in short steps, then stay put for 6-22 seconds doing
+  whatever they came over to do. Steps are tested against the wall segments, so a gridless
+  scene needs no grid to keep people out of walls; walking into one ends the errand rather
+  than grinding. Idle NPCs are the ones picked for chatter, since a person standing still is
+  the one who talks.
 - **Keybinding C.** J, P, S, I and `\` are taken by the other SSV modules.
 - CSS is injected from JS under the single root class `.sgset`. Do not depend on another
   module's stylesheet; copy what you need under your own root.

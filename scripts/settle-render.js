@@ -290,13 +290,15 @@
       }
     }
 
+    const mergedWalls = mergeSegments(segs);
     return {
       gridSize: g,
       cols,
       rows,
       width: cols * g,
       height: rows * g,
-      walls: mergeSegments(segs),
+      walls: mergedWalls,
+      wallSegments: mergedWalls.map((w) => w.c),
       lights,
       spawns,
       exits: mergeExits(exits, g),
@@ -497,7 +499,15 @@
   position:fixed;inset:0;z-index:70;display:flex;color:var(--ink);
   font-family:'Courier New',monospace;background:var(--bg);}
 .sgset *{box-sizing:border-box;}
-.sgset button{font-family:inherit;color:inherit;cursor:pointer;background:none;border:none;}
+/* Foundry's own button and typography rules leak in, and inline spans inside a flex button
+   collapse on top of one another. Everything below is a defence against that. */
+.sgset button{font-family:inherit;color:inherit;cursor:pointer;background:none;border:none;
+  margin:0;line-height:1.35;text-align:left;white-space:normal;text-shadow:none;
+  box-shadow:none;border-radius:0;height:auto;min-height:0;width:auto;}
+.sgset button:hover,.sgset button:focus{box-shadow:none;outline:none;}
+.sgset .sgset-loc .body,.sgset .sgset-loc .blurb,
+.sgset .sgset-loc .sgset-tags,.sgset .sgset-loc .sgset-who{display:block;}
+.sgset .sgset-loc .glyph{display:flex;}
 
 /* ---- stage (the settlement artwork) ---- */
 .sgset-stage{position:relative;flex:1 1 auto;overflow:hidden;display:flex;
@@ -584,11 +594,12 @@
   display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--teal);
   background:rgba(4,14,22,.8);}
 .sgset-loc.is-blocked .glyph{color:var(--amber);border-color:#5c4520;}
-.sgset-loc .body{flex:1 1 auto;min-width:0;}
+.sgset-loc .body{flex:1 1 auto;min-width:0;display:block;}
 .sgset-loc .name{font-size:13px;letter-spacing:.1em;text-transform:uppercase;
   display:flex;align-items:center;gap:7px;}
-.sgset-loc .blurb{font-size:11px;color:var(--muted);line-height:1.45;margin-top:4px;}
+.sgset-loc .blurb{display:block;font-size:11px;color:var(--muted);line-height:1.45;margin-top:4px;}
 .sgset-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.sgset-tag,.sgset-pip{display:inline-block;}
 .sgset-tag{font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:2px 6px;
   border-radius:5px;border:1px solid var(--edge);color:var(--muted);}
 .sgset-tag.shop{border-color:#1f7a5e;color:var(--teal);}
@@ -597,6 +608,7 @@
 .sgset-tag.locked{border-color:#7a2731;color:var(--red);}
 .sgset-tag.gm{border-color:#5b3a7a;color:#c69bec;}
 .sgset-who{display:flex;gap:4px;flex-wrap:wrap;margin-top:7px;}
+.sgset-loc .name{display:flex;}
 .sgset-pip{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;
   border-radius:9px;background:rgba(56,225,196,.14);border:1px solid rgba(56,225,196,.4);
   color:var(--teal);}
@@ -1034,7 +1046,7 @@
     root.querySelector('[data-act="scrim"]')?.addEventListener("click", (e) => {
       if (e.target === e.currentTarget) ctx.closeCard();
     });
-    root.querySelector('[data-act="shop"]')?.addEventListener("click", () => ctx.openShop(npc.shopId));
+    root.querySelector('[data-act="shop"]')?.addEventListener("click", () => ctx.openShop(npc.shopId, npc));
     root.querySelector('[data-act="sheet"]')?.addEventListener("click", () => ctx.openSheet(npc));
     root.querySelectorAll('[data-act="say"]').forEach((el) =>
       el.addEventListener("click", () => {

@@ -133,7 +133,7 @@ function buildCtx() {
     enter: (locId) => requestEnter(locId),
     leave: () => requestLeave(),
     closeCard: () => closeCard(),
-    openShop: (shopId) => openShopFor(shopId),
+    openShop: (shopId, npc) => openShopFor(shopId, npc),
     openSheet: (npc) => game.actors.getName(npc.actor)?.sheet?.render(true),
     say: (npc, line) => sayLine(npc, line),
     setTimeOfDay: (t) => gmCall("setTimeOfDay", { t }),
@@ -206,7 +206,7 @@ async function openNpcCard(tokenDoc) {
   const { loc } = findLoc(locId);
   const npc = (loc?.npcs || []).find((n) => n.key === npcKey);
   if (!npc) return;
-  S().renderNpcCard(cardRoot(), buildCtx(), npc, loc);
+  S().renderNpcCard(cardRoot(), buildCtx(), { ...npc, locId: locId }, loc);
 }
 
 function sayLine(npc, line) {
@@ -216,9 +216,53 @@ function sayLine(npc, line) {
   });
 }
 
-async function openShopFor(shopId) {
+/**
+ * Make sure every shop a location's shopkeepers point at actually exists.
+ *
+ * The shop module seeds worlds from its own catalogue and deliberately skips a world that
+ * already has shops — so a world seeded before a shopkeeper was added never gets that
+ * shop, and clicking the keeper only produced "That shop is gone." Each shopkeeper carries
+ * the spec needed to mint their own shop, so the GM can just create what is missing.
+ */
+async function ensureShopsFor(loc) {
+  if (!isActiveGM()) return;
   const api = game.modules.get(SHOP_ID)?.api;
+  if (!api?.createShop || !api?.getShops) return;
+  const existing = api.getShops() || {};
+  for (const npc of loc?.npcs || []) {
+    if (!npc.shopId || existing[npc.shopId]) continue;
+    if (!npc.shop) {
+      console.warn(`${MODULE_ID} | ${npc.key} points at ${npc.shopId} but carries no shop spec`);
+      continue;
+    }
+    try {
+      await api.createShop({ id: npc.shopId, ...npc.shop });
+      console.log(`${MODULE_ID} | created missing shop ${npc.shopId}`);
+    } catch (e) {
+      console.error(`${MODULE_ID} | could not create ${npc.shopId}`, e);
+    }
+  }
+}
+
+async function openShopFor(shopId, npc) {
+  const mod = game.modules.get(SHOP_ID);
+  const api = mod?.api;
   if (!api?.openShop) return ui.notifications?.warn("The shop module is not available.");
+
+  const missing = !(api.getShops?.() || {})[shopId];
+  if (missing) {
+    if (game.user.isGM) {
+      const { loc } = findLoc(npc?.locId ?? canvas?.scene?.getFlag(MODULE_ID, "locId"));
+      await ensureShopsFor(loc || { npcs: npc ? [npc] : [] });
+    } else {
+      // Ask the GM to mint it, then try again once they have.
+      emit({ toGM: true, type: "ensureShop", shopId, locId: canvas?.scene?.getFlag(MODULE_ID, "locId") });
+      await new Promise((r) => setTimeout(r, 600));
+    }
+  }
+  if (!(api.getShops?.() || {})[shopId]) {
+    return ui.notifications?.warn("That shop has not been set up yet — ask your GM.");
+  }
   closeCard();
   await api.openShop(shopId);
 }
@@ -323,6 +367,7 @@ async function npcTokenDocs(geo, loc) {
       disposition: npc.hostile ? -1 : npc.shopId ? 1 : 0,
       texture: { src: assetPath(npc.token || npc.portrait) || actor.img },
       sight: { enabled: false },
+      lockRotation: true,
       flags: {
         [MODULE_ID]: {
           npcKey: npc.key,
@@ -357,7 +402,12 @@ async function buildScene(cityId, locId, { rebuild = false } = {}) {
     height: geo.height,
     padding: 0,
     background: { src: assetPath(loc.interior.img) },
-    grid: { type: CONST.GRID_TYPES.SQUARE, size: geo.gridSize },
+    // Gridless by default: these maps are illustrated art whose architecture never lines up
+    // with a square grid, and a grid drawn over them just fights the picture.
+    grid: {
+      type: loc.interior.gridless === false ? CONST.GRID_TYPES.SQUARE : CONST.GRID_TYPES.GRIDLESS,
+      size: geo.gridSize,
+    },
     tokenVision: loc.interior.tokenVision ?? true,
     flags: {
       [MODULE_ID]: {
@@ -482,6 +532,7 @@ async function gmEnter(userId, locId) {
   recentEnter.set(userId, Date.now());
   await setState({ whereIs: { ...getState().whereIs, [userId]: locId } });
   await syncShopLocation(city);
+  await ensureShopsFor(loc);
   emit({ toUser: userId, type: "view", sceneId: scene.id });
   if (userId === game.user.id) viewScene(scene.id);
   refreshEveryone();
@@ -553,7 +604,10 @@ function onTokenMoved(doc) {
  * ------------------------------------------------------------------ */
 
 let wanderTimer = null;
-const wanderPlans = new Map(); // tokenId -> remaining path of cells
+
+/* Per-token behaviour. Not persisted: tokens carry their own position, and a fresh mind on
+ * reload is fine. Modes: "busy" (standing somewhere doing something) and "walking". */
+const minds = new Map();
 
 function settlementScenes() {
   return game.scenes.filter((s) => s.getFlag(MODULE_ID, "locId"));
@@ -563,32 +617,106 @@ function sceneHasAudience(scene) {
   return game.users.some((u) => u.active && u.viewedScene === scene.id);
 }
 
-function randInt(n) { return Math.floor(Math.random() * n); }
+const randInt = (n) => Math.floor(Math.random() * n);
+const randRange = (a, b) => a + Math.random() * (b - a);
+const pick = (arr) => arr[randInt(arr.length)];
 
-function pickWanderTarget(scene, token) {
-  const passable = scene.getFlag(MODULE_ID, "passable");
-  const waypoints = scene.getFlag(MODULE_ID, "waypoints") || [];
-  const home = token.getFlag(MODULE_ID, "home");
-  const radius = token.getFlag(MODULE_ID, "radius") || 6;
-  if (!passable || !home) return null;
-  const g = scene.getFlag(MODULE_ID, "gridSize") || 100;
-  const from = { col: Math.round(token.x / g), row: Math.round(token.y / g) };
+/** Would a straight walk from one point to another go through a wall? */
+function blockedBy(segs, x0, y0, x1, y1) {
+  if (!segs?.length) return false;
+  return segs.some((c) => S().segmentsCross(x0, y0, x1, y1, c[0], c[1], c[2], c[3]));
+}
 
-  const pool = waypoints.length
-    ? waypoints.filter((w) => Math.abs(w.col - home.col) + Math.abs(w.row - home.row) <= radius * 2)
-    : [];
-  if (pool.length) {
-    const t = pool[randInt(pool.length)];
-    return S().pathfind(passable, from, { row: t.row, col: t.col });
+function mindFor(scene, token) {
+  let m = minds.get(token.id);
+  if (!m) {
+    const g = scene.getFlag(MODULE_ID, "gridSize") || 100;
+    const home = token.getFlag(MODULE_ID, "home");
+    m = {
+      mode: "busy",
+      until: Date.now() + randInt(6000),
+      anchor: home ? { x: home.col * g, y: home.row * g } : { x: token.x, y: token.y },
+      target: null,
+    };
+    minds.set(token.id, m);
   }
-  for (let tries = 0; tries < 8; tries++) {
-    const row = home.row + randInt(radius * 2 + 1) - radius;
-    const col = home.col + randInt(radius * 2 + 1) - radius;
-    if (!passable[row]?.[col]) continue;
-    const path = S().pathfind(passable, from, { row, col });
-    if (path.length) return path;
+  return m;
+}
+
+/**
+ * Choose somewhere worth standing: a waypoint the artist's map suggests, or a point near
+ * this NPC's own patch. Rejects anything on the far side of a wall.
+ */
+function chooseSpot(scene, token, from) {
+  const g = scene.getFlag(MODULE_ID, "gridSize") || 100;
+  const segs = scene.getFlag(MODULE_ID, "wallSegments");
+  const waypoints = scene.getFlag(MODULE_ID, "waypoints") || [];
+  const radius = (token.getFlag(MODULE_ID, "radius") || 6) * g;
+  const anchor = mindFor(scene, token).anchor;
+
+  const candidates = [];
+  for (const w of waypoints) {
+    const p = { x: w.x ?? w.col * g, y: w.y ?? w.row * g };
+    if (Math.hypot(p.x - anchor.x, p.y - anchor.y) <= radius * 1.6) candidates.push(p);
+  }
+  for (let i = 0; i < 10; i++) {
+    candidates.push({
+      x: anchor.x + randRange(-radius, radius),
+      y: anchor.y + randRange(-radius, radius),
+    });
+  }
+
+  const W = scene.width || scene.dimensions?.width || 0;
+  const H = scene.height || scene.dimensions?.height || 0;
+  for (const p of candidates.sort(() => Math.random() - 0.5)) {
+    const jitter = { x: p.x + randRange(-g * 0.3, g * 0.3), y: p.y + randRange(-g * 0.3, g * 0.3) };
+    if (jitter.x < g * 0.3 || jitter.y < g * 0.3 || (W && jitter.x > W - g) || (H && jitter.y > H - g)) continue;
+    if (blockedBy(segs, from.x + g / 2, from.y + g / 2, jitter.x + g / 2, jitter.y + g / 2)) continue;
+    return jitter;
   }
   return null;
+}
+
+/** One beat of one NPC's life. */
+async function stepNpc(scene, token) {
+  const now = Date.now();
+  const m = mindFor(scene, token);
+  const g = scene.getFlag(MODULE_ID, "gridSize") || 100;
+  const here = { x: token.x, y: token.y };
+
+  if (m.mode === "busy") {
+    if (now < m.until) return;
+    const spot = chooseSpot(scene, token, here);
+    if (!spot) { m.until = now + randRange(4000, 9000); return; }
+    m.target = spot;
+    m.mode = "walking";
+  }
+
+  if (m.mode === "walking" && m.target) {
+    const dx = m.target.x - here.x;
+    const dy = m.target.y - here.y;
+    const dist = Math.hypot(dx, dy);
+    // Arrived: stop and do whatever it is they came over here to do.
+    if (dist < g * 0.35) {
+      m.mode = "busy";
+      m.target = null;
+      m.until = now + randRange(6000, 22000);
+      return;
+    }
+    const speed = g * randRange(0.5, 0.85);
+    const stepLen = Math.min(speed, dist);
+    const nx = here.x + (dx / dist) * stepLen;
+    const ny = here.y + (dy / dist) * stepLen;
+    const segs = scene.getFlag(MODULE_ID, "wallSegments");
+    if (blockedBy(segs, here.x + g / 2, here.y + g / 2, nx + g / 2, ny + g / 2)) {
+      // Walked into something. Give up on this errand rather than grinding at the wall.
+      m.mode = "busy";
+      m.target = null;
+      m.until = now + randRange(2000, 5000);
+      return;
+    }
+    await token.update({ x: Math.round(nx), y: Math.round(ny) }, { animate: true });
+  }
 }
 
 async function wanderTick() {
@@ -599,33 +727,16 @@ async function wanderTick() {
     if (game.combats.some((c) => c.scene?.id === scene.id && c.started)) continue;
     const locId = scene.getFlag(MODULE_ID, "locId");
     const { loc } = findLoc(locId);
-    const state = getState();
     const hours = loc?.openHours;
-    if (Array.isArray(hours) && hours.length && !hours.includes(state.timeOfDay)) continue;
+    if (Array.isArray(hours) && hours.length && !hours.includes(getState().timeOfDay)) continue;
 
-    const g = scene.getFlag(MODULE_ID, "gridSize") || 100;
     for (const token of scene.tokens) {
       if (!token.getFlag(MODULE_ID, "wander")) continue;
-      if (Math.random() < 0.25) continue; // not everyone moves every beat
-      let path = wanderPlans.get(token.id);
-      if (!path || !path.length) {
-        path = pickWanderTarget(scene, token);
-        if (!path) continue;
+      try {
+        await stepNpc(scene, token);
+      } catch (e) {
+        console.error(`${MODULE_ID} | npc step failed`, e);
       }
-      const step = path.shift();
-      wanderPlans.set(token.id, path);
-      const nx = step.col * g;
-      const ny = step.row * g;
-      // On analysed maps the cell grid is open everywhere and only the wall segments say
-      // what is solid, so check the step itself rather than trusting the grid.
-      const segs = scene.getFlag(MODULE_ID, "wallSegments");
-      if (segs?.length) {
-        const from = [token.x + g / 2, token.y + g / 2];
-        const to = [nx + g / 2, ny + g / 2];
-        const blocked = segs.some((c) => S().segmentsCross(from[0], from[1], to[0], to[1], c[0], c[1], c[2], c[3]));
-        if (blocked) { wanderPlans.delete(token.id); continue; }
-      }
-      await token.update({ x: nx, y: ny }, { animate: true });
     }
   }
   maybeChatter();
@@ -641,13 +752,15 @@ function maybeChatter() {
     const { loc } = findLoc(scene.getFlag(MODULE_ID, "locId"));
     const lines = loc?.chatter || [];
     if (!lines.length) continue;
+    // Someone standing still is far more likely to be the one talking.
     const speakers = scene.tokens.filter((t) => t.getFlag(MODULE_ID, "npcKey"));
-    if (!speakers.length) continue;
-    const token = speakers[randInt(speakers.length)];
-    const line = lines[randInt(lines.length)];
+    const idle = speakers.filter((t) => minds.get(t.id)?.mode === "busy");
+    const who = pick(idle.length ? idle : speakers);
+    if (!who) continue;
     lastChatter = now;
-    emit({ type: "bubble", sceneId: scene.id, tokenId: token.id, line });
-    showBubble(scene.id, token.id, line);
+    const line = pick(lines);
+    emit({ type: "bubble", sceneId: scene.id, tokenId: who.id, line });
+    showBubble(scene.id, who.id, line);
     return;
   }
 }
@@ -721,6 +834,11 @@ async function handleGm(msg) {
     case "enter": return gmEnter(msg.userId, msg.locId);
     case "leave": return gmLeave(msg.userId);
     case "recall": return gmLeave(msg.userId);
+    case "ensureShop": {
+      const { loc } = findLoc(msg.locId);
+      if (loc) await ensureShopsFor(loc);
+      return;
+    }
     case "setTimeOfDay":
       await setState({ timeOfDay: msg.t });
       break;
