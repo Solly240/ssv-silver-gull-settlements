@@ -247,6 +247,21 @@ only be opened by clicking its shopkeeper. The GM is never gated.
   **Always call the original handler**, then open the card. Returning early instead left the
   canvas interaction manager mid-click, and a stuck interaction state eats Escape until the
   page is reloaded. Selecting the token as well is harmless; wedging the canvas is not.
+- **The side-panel rows must never shrink.** `.sgset-loc` sets `flex: 0 0 auto`. The list
+  is a flex column, so with the default `flex-shrink: 1` the rows compress whenever the
+  panel is shorter than its contents — which first pushed the tag chips onto the card above
+  and then, once `overflow` was clamped, clipped them. The list scrolls; the rows keep
+  their natural height. Test any new row by squeezing `.sgset-list` to 120px.
+- **Art the browser fetches goes through `artPath()`, not `assetPath()`.** It stamps the
+  module version onto the URL. Filenames do not change between releases, so a browser
+  otherwise keeps serving the copy it cached — an updated settlement vista would still show
+  the old picture. Scene backgrounds stay on the clean `assetPath()`, since those are stored
+  on the document and must not churn every release.
+- **NPCs keep a personal space of about 0.85 of a grid step.** `spotTaken()` checks both
+  where other tokens *are* and where they are *heading*; without the second check two of
+  them pick the same stool and stack. They sidestep when something is in the way and wait a
+  beat when there is no room. Initial placement fans them out too, since several crowd NPCs
+  share one waypoint.
 - **The side-panel rows are `div role=button`, not `<button>`.** Foundry's global button
   rules (a fixed `height`, `line-height: 1`, `white-space: nowrap`) repeatedly broke the row
   layout and pushed the tag chips out onto the card above. The row restates its own box —

@@ -588,8 +588,12 @@
 .sgset-list{flex:1 1 auto;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:7px;}
 .sgset-loc{border:1px solid var(--edge);border-radius:10px;background:rgba(9,24,36,.72);
   padding:10px 11px;display:flex;gap:11px;align-items:flex-start;text-align:left;width:100%;
-  cursor:pointer;overflow:hidden;font:inherit;color:inherit;
+  cursor:pointer;font:inherit;color:inherit;
   height:auto;min-height:0;max-height:none;line-height:1.4;white-space:normal;
+  /* The list is a flex column, so without this the rows shrink to fit whenever the panel
+     is shorter than its contents — which is what made the tags first overlap the next card
+     and then get clipped. The list scrolls; the rows keep their natural height. */
+  flex:0 0 auto;
   transition:border-color .15s,background .15s,transform .12s;}
 .sgset .sgset-loc>*{white-space:normal;}
 .sgset-loc:focus-visible{outline:1px solid var(--teal);outline-offset:2px;}

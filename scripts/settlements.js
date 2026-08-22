@@ -72,6 +72,21 @@ const assetPath = (rel) => {
   return `modules/${MODULE_ID}/${rel.replace(/^\.?\//, "")}`;
 };
 
+/**
+ * Art paths for the browser to fetch, stamped with the module version.
+ *
+ * Filenames never change between releases, so a browser will happily keep serving the
+ * copy it cached — which is why an updated settlement vista could still show the old one.
+ * Only used for images the page requests directly; scene backgrounds are stored on the
+ * document and must stay a clean path.
+ */
+const artPath = (rel) => {
+  const p = assetPath(rel);
+  if (!p || /^(https?:|data:)/.test(p)) return p;
+  const v = game.modules.get(MODULE_ID)?.version || "0";
+  return `${p}${p.includes("?") ? "&" : "?"}v=${encodeURIComponent(v)}`;
+};
+
 /* ------------------------------------------------------------------ *
  * Roots
  * ------------------------------------------------------------------ */
@@ -125,7 +140,7 @@ function buildCtx() {
     state,
     standing: standingSummary(city),
     hasShopModule: !!game.modules.get(SHOP_ID)?.active,
-    assetPath,
+    assetPath: artPath,
     refresh: () => drawHub(),
     close: () => closeHub(),
     notify: (m) => ui.notifications?.info(m),
@@ -354,6 +369,7 @@ async function actorForNpc(npc) {
 async function npcTokenDocs(geo, loc) {
   const g = geo.gridSize;
   const out = [];
+  const taken = [];
   for (const npc of loc.npcs || []) {
     const actor = await actorForNpc(npc);
     if (!actor) continue;
@@ -362,12 +378,27 @@ async function npcTokenDocs(geo, loc) {
     else if (npc.spawnArea) cell = geo.waypoints.find((w) => w.tag === npc.spawnArea);
     if (!cell) cell = geo.waypoints[0] || geo.spawns[0];
     if (!cell) continue;
+
+    // Analysed maps give a precise point (a token's x/y is its top-left, the point is a
+    // centre); authored grids give a cell. Then nudge off anyone already standing here —
+    // several crowd NPCs share a waypoint and would otherwise spawn in a stack.
+    let px = cell.x != null ? Math.round(cell.x - g / 2) : cell.col * g;
+    let py = cell.y != null ? Math.round(cell.y - g / 2) : cell.row * g;
+    const gap = g * 0.85;
+    for (let attempt = 0; attempt < 12 && taken.some((t) => Math.hypot(t.x - px, t.y - py) < gap); attempt++) {
+      const angle = (attempt / 12) * Math.PI * 2;
+      const ring = g * (0.9 + 0.5 * Math.floor(attempt / 6));
+      px = Math.round((cell.x != null ? cell.x - g / 2 : cell.col * g) + Math.cos(angle) * ring);
+      py = Math.round((cell.y != null ? cell.y - g / 2 : cell.row * g) + Math.sin(angle) * ring);
+    }
+    taken.push({ x: px, y: py });
+
     out.push({
       name: npc.name || actor.name,
       actorId: actor.id,
       actorLink: false,
-      x: cell.col * g,
-      y: cell.row * g,
+      x: px,
+      y: py,
       width: 1,
       height: 1,
       disposition: npc.hostile ? -1 : npc.shopId ? 1 : 0,
@@ -380,7 +411,7 @@ async function npcTokenDocs(geo, loc) {
           locId: loc.id,
           shopId: npc.shopId || null,
           wander: !!npc.wander,
-          home: { col: cell.col, row: cell.row },
+          home: { col: Math.round(px / g), row: Math.round(py / g), x: px, y: py },
           radius: Number(npc.radius) || 6,
         },
       },
@@ -624,6 +655,23 @@ function sceneHasAudience(scene) {
 }
 
 const randInt = (n) => Math.floor(Math.random() * n);
+
+/** How close two people will stand. Kept in step units so it scales with the map. */
+const personalSpace = (g) => g * 0.85;
+
+/**
+ * Is this spot already taken — by another token standing there, or by another NPC on their
+ * way to it? Without the second check two of them pick the same stool and end up stacked.
+ */
+function spotTaken(scene, token, x, y, gap) {
+  for (const other of scene.tokens) {
+    if (other.id === token.id) continue;
+    if (Math.hypot(other.x - x, other.y - y) < gap) return true;
+    const mind = minds.get(other.id);
+    if (mind?.target && Math.hypot(mind.target.x - x, mind.target.y - y) < gap) return true;
+  }
+  return false;
+}
 const randRange = (a, b) => a + Math.random() * (b - a);
 const pick = (arr) => arr[randInt(arr.length)];
 
@@ -641,7 +689,9 @@ function mindFor(scene, token) {
     m = {
       mode: "busy",
       until: Date.now() + randInt(6000),
-      anchor: home ? { x: home.col * g, y: home.row * g } : { x: token.x, y: token.y },
+      anchor: home
+        ? { x: home.x ?? home.col * g, y: home.y ?? home.row * g }
+        : { x: token.x, y: token.y },
       target: null,
     };
     minds.set(token.id, m);
@@ -678,6 +728,7 @@ function chooseSpot(scene, token, from) {
     const jitter = { x: p.x + randRange(-g * 0.3, g * 0.3), y: p.y + randRange(-g * 0.3, g * 0.3) };
     if (jitter.x < g * 0.3 || jitter.y < g * 0.3 || (W && jitter.x > W - g) || (H && jitter.y > H - g)) continue;
     if (blockedBy(segs, from.x + g / 2, from.y + g / 2, jitter.x + g / 2, jitter.y + g / 2)) continue;
+    if (spotTaken(scene, token, jitter.x, jitter.y, personalSpace(g))) continue;
     return jitter;
   }
   return null;
@@ -719,6 +770,23 @@ async function stepNpc(scene, token) {
       m.mode = "busy";
       m.target = null;
       m.until = now + randRange(2000, 5000);
+      return;
+    }
+    // Never walk onto someone. Try to slip past them, and wait a beat if there is no room.
+    const gap = personalSpace(g);
+    if (spotTaken(scene, token, nx, ny, gap)) {
+      const side = Math.random() < 0.5 ? 1 : -1;
+      const sx = here.x + (-dy / dist) * stepLen * 0.8 * side;
+      const sy = here.y + (dx / dist) * stepLen * 0.8 * side;
+      const canSidestep = !blockedBy(segs, here.x + g / 2, here.y + g / 2, sx + g / 2, sy + g / 2)
+        && !spotTaken(scene, token, sx, sy, gap);
+      if (!canSidestep) {
+        m.until = now + randRange(1200, 3000);
+        m.mode = "busy";
+        m.target = null;
+        return;
+      }
+      await token.update({ x: Math.round(sx), y: Math.round(sy) }, { animate: true });
       return;
     }
     await token.update({ x: Math.round(nx), y: Math.round(ny) }, { animate: true });
