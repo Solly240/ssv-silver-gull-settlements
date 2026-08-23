@@ -46,6 +46,19 @@ matters — see the note at the end of this section for why the reverse does not
 
 ### The pipeline
 
+`tools/adopt_map.py` does steps 2-3 in one go once you have the extras worked out:
+`python3 adopt_map.py TRADE_POST frostwatch-the-trade-post --extras extras.json`.
+
+**Tune `--strength` per map.** It is how much darker than its surroundings a pixel must be to
+count as ink, and the right value varies with the art. Too low and floor tile seams come
+through as walls across the middle of a room — which blocks movement where the picture shows
+open floor. The medbay needed 32 and the admin hab 20, against a default of 16. Sweep it and
+look before adopting.
+
+**Detected "lights" are just warm bright blobs**, so anything glowing qualifies. On the admin
+hab it found the eight coloured pins on the notice board. Override the list by hand when that
+happens.
+
 ```bash
 # 1. generate the art (gpt-image-1, 1536x1024, nothing drawn on it)
 python3 tools/gen_freeform_maps.py frostwatch-the-trade-post
