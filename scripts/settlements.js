@@ -344,6 +344,16 @@ function drawLeave() {
  * Scene building
  * ------------------------------------------------------------------ */
 
+/**
+ * Can this location be built as a scene?
+ *
+ * Two kinds of interior: one analysed off finished map art (`geometry`) and one derived from
+ * an authored ASCII floorplan (`plan`). Guarding on `plan` alone silently excluded every
+ * analysed map — buildScene returned null ("has no floorplan yet") and Rebuild every scene
+ * reported "Rebuilt 0 scenes". Always ask through here.
+ */
+const buildable = (loc) => !!(loc?.interior?.plan || loc?.interior?.geometry);
+
 function sceneNameFor(city, loc) {
   return `${city.name} — ${loc.name}`;
 }
@@ -462,7 +472,7 @@ async function npcTokenDocs(geo, loc) {
 async function buildScene(cityId, locId, { rebuild = false } = {}) {
   const city = cityById(cityId);
   const loc = locById(city, locId);
-  if (!city || !loc?.interior?.plan) return null;
+  if (!city || !buildable(loc)) return null;
 
   const geo = S().deriveGeometry(loc.interior);
   let scene = sceneFor(locId);
@@ -594,11 +604,17 @@ async function gmRebuildAll() {
   if (!(await confirmDialog(`Rebuild every scene in ${city.name} from its floorplan?`))) return;
   let n = 0;
   for (const loc of city.locations || []) {
-    if (!loc.interior?.plan) continue;
+    if (!buildable(loc)) continue;
     await buildScene(city.id, loc.id, { rebuild: true });
     n++;
   }
-  ui.notifications?.info(`Rebuilt ${n} scene${n === 1 ? "" : "s"} in ${city.name}.`);
+  if (!n) {
+    ui.notifications?.warn(`Nothing to rebuild in ${city.name} — no location has a map. This is a bug; check the console.`);
+    console.warn(`${MODULE_ID} | rebuildAll found no buildable locations in ${city.id}`,
+      (city.locations || []).map((l) => ({ id: l.id, plan: !!l.interior?.plan, geometry: !!l.interior?.geometry })));
+  } else {
+    ui.notifications?.info(`Rebuilt ${n} scene${n === 1 ? "" : "s"} in ${city.name}.`);
+  }
   drawHub();
 }
 

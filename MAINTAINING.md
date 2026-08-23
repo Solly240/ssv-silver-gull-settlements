@@ -196,6 +196,13 @@ authored at 0.49/0.59 is on the same building at every window shape. If you ever
 (`spawns`, `exits`, `posts`, `waypoints`, `passable`, `gridSize`) that the wander engine and
 the doorway check read at runtime.
 
+**Ask `buildable(loc)`, never `loc.interior.plan`.** There are two kinds of interior —
+analysed off finished art (`geometry`) and derived from an ASCII floorplan (`plan`). Guarding
+on `plan` alone silently excluded every analysed map: `buildScene` returned null so entering
+said *"has no floorplan yet"*, and **Rebuild every scene** cheerfully reported *"Rebuilt 0
+scenes"*. `check_geometry.js` now fails on a location with an interior but neither, so the
+data side is covered too.
+
 **Scenes repair themselves when the content moves on.** Every scene stores a `geoHash` of
 the map it was built from. `ensureScene()` compares it on entry and rebuilds when it differs,
 and the active GM gets a warning on load listing any stale scenes.
