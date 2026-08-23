@@ -196,6 +196,12 @@ authored at 0.49/0.59 is on the same building at every window shape. If you ever
 (`spawns`, `exits`, `posts`, `waypoints`, `passable`, `gridSize`) that the wander engine and
 the doorway check read at runtime.
 
+**Light radii are in grid distance units, not pixels.** `dim` and `bright` on an
+`AmbientLight` are in the scene's distance units — feet by default, five per square. A room
+lamp is `dim: 30, bright: 12`; an outdoor floodlight about `dim: 65`. Writing pixel-scale
+numbers there (170, 260) makes each lamp tens of squares across and floods the map white.
+`adopt_map.LAMP` carries the sane default.
+
 **Foundry v14 has no `background` field on Scene — the map is a Tile.** Confirmed on the live
 server: `"background" in Scene.implementation.schema.fields` is `false` on v14.363, and every
 working map (Foundry's own default scene, the Czepeku packs) stores its image as a Tile with
