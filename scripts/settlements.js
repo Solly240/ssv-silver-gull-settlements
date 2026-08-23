@@ -365,25 +365,68 @@ function sceneFor(locId) {
   return (id && game.scenes.get(id)) || game.scenes.getName(sceneNameFor(city, loc)) || null;
 }
 
-/** Make sure a scene's background image is what we asked for, and say so if it will not take. */
-async function ensureBackground(scene, src) {
+/**
+ * Does this Foundry still have a background image field on Scene?
+ *
+ * v14 removed it. The map is a Tile now — which is how Foundry's own scenes and every
+ * commercial map pack store theirs. Writing `background.src` on v14 is silently dropped,
+ * leaving a scene with correct walls, lights and tokens but no picture: flat grey.
+ */
+const sceneHasBackgroundField = () => "background" in (Scene.implementation ?? Scene).schema.fields;
+
+const MAP_TILE = "mapBackground";
+
+/** Put the map on the scene, whichever way this version of Foundry wants it. */
+async function ensureBackground(scene, src, geo) {
   if (!scene || !src) return;
-  const got = () => scene.background?.src || scene.img || null;
-  if (got() === src) return;
+
+  if (sceneHasBackgroundField()) {
+    if ((scene.background?.src || scene.img) === src) return;
+    try { await scene.update({ "background.src": src }); } catch (e) {
+      console.error(`${MODULE_ID} | could not set background.src`, e);
+    }
+    if ((scene.background?.src || scene.img) !== src) {
+      console.error(`${MODULE_ID} | ${scene.name}: background is "${scene.background?.src}", wanted "${src}"`);
+      ui.notifications?.error(`${scene.name}: could not set the map image. See the console.`);
+    }
+    return;
+  }
+
+  // v14+: the map is a locked Tile underneath everything else.
+  const width = geo?.width ?? scene.width;
+  const height = geo?.height ?? scene.height;
+  const mine = scene.tiles.filter((t) => t.getFlag(MODULE_ID, MAP_TILE));
+  const want = {
+    texture: { src },
+    x: 0, y: 0, width, height,
+    elevation: 0, sort: -1000, locked: true,
+    restrictions: { light: false, weather: false },
+    flags: { [MODULE_ID]: { [MAP_TILE]: true } },
+  };
+
   try {
-    await scene.update({ "background.src": src });
+    if (mine.length > 1) {
+      await scene.deleteEmbeddedDocuments("Tile", mine.slice(1).map((t) => t.id));
+    }
+    if (mine.length) {
+      const t = mine[0];
+      if (t.texture?.src !== src || t.width !== width || t.height !== height) {
+        await t.update({ "texture.src": src, x: 0, y: 0, width, height, sort: -1000, locked: true });
+      }
+    } else {
+      await scene.createEmbeddedDocuments("Tile", [want]);
+    }
   } catch (e) {
-    console.error(`${MODULE_ID} | could not set background.src`, e);
+    console.error(`${MODULE_ID} | could not place the map tile`, e);
+    ui.notifications?.error(`${scene.name}: could not place the map image. See the console.`);
+    return;
   }
-  if (got() !== src) {
-    // Older scene shapes used a flat `img` field.
-    try { await scene.update({ img: src }); } catch (e) { /* not this version's shape */ }
-  }
-  if (got() !== src) {
-    console.error(`${MODULE_ID} | ${scene.name}: background is "${got()}", wanted "${src}"`);
-    ui.notifications?.error(`${scene.name}: could not set the map image. See the console.`);
+
+  const now = scene.tiles.find((t) => t.getFlag(MODULE_ID, MAP_TILE));
+  if (now?.texture?.src !== src) {
+    console.error(`${MODULE_ID} | ${scene.name}: map tile is "${now?.texture?.src}", wanted "${src}"`);
   } else {
-    console.log(`${MODULE_ID} | ${scene.name}: background set to ${src}`);
+    console.log(`${MODULE_ID} | ${scene.name}: map tile set to ${src}`);
   }
 }
 
@@ -504,7 +547,7 @@ async function buildScene(cityId, locId, { rebuild = false } = {}) {
     width: geo.width,
     height: geo.height,
     padding: 0,
-    background: { src: assetPath(loc.interior.img) },
+    ...(sceneHasBackgroundField() ? { background: { src: assetPath(loc.interior.img) } } : {}),
     // Gridless by default: these maps are illustrated art whose architecture never lines up
     // with a square grid, and a grid drawn over them just fights the picture.
     grid: {
@@ -554,7 +597,10 @@ async function buildScene(cityId, locId, { rebuild = false } = {}) {
   // larger create/update payload can be dropped; the dot-notation form is the reliable way
   // to set it, and a scene with no background renders as flat grey with the walls and
   // lights present, which looks like the map "not working".
-  await ensureBackground(scene, assetPath(loc.interior.img));
+  await ensureBackground(scene, assetPath(loc.interior.img), geo);
+  // A thumbnail keeps the scene sidebar readable; not worth failing a build over.
+  try { if (scene.createThumbnail) await scene.update({ thumb: (await scene.createThumbnail()).thumb }); }
+  catch (e) { /* thumbnails are cosmetic */ }
 
   await scene.createEmbeddedDocuments("Wall", wallDocs(geo));
   const lights = lightDocs(geo);
@@ -1513,7 +1559,8 @@ Hooks.once("ready", async () => {
           if (!scene) { rows.push({ loc: loc.id, scene: "(none)" }); continue; }
           rows.push({
             loc: loc.id, scene: scene.name,
-            background: scene.background?.src || scene.img || "(none)",
+            background: scene.background?.src || scene.img
+              || scene.tiles.find((t) => t.getFlag(MODULE_ID, MAP_TILE))?.texture?.src || "(none)",
             wanted: assetPath(loc.interior?.img),
             size: `${scene.width}x${scene.height}`,
             walls: scene.walls.size, lights: scene.lights.size,
@@ -1531,7 +1578,7 @@ Hooks.once("ready", async () => {
         for (const loc of city.locations || []) {
           const scene = sceneFor(loc.id);
           if (!scene || !loc.interior?.img) continue;
-          await ensureBackground(scene, assetPath(loc.interior.img));
+          await ensureBackground(scene, assetPath(loc.interior.img), S().deriveGeometry(loc.interior));
           n++;
         }
       }

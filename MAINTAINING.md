@@ -196,6 +196,16 @@ authored at 0.49/0.59 is on the same building at every window shape. If you ever
 (`spawns`, `exits`, `posts`, `waypoints`, `passable`, `gridSize`) that the wander engine and
 the doorway check read at runtime.
 
+**Foundry v14 has no `background` field on Scene — the map is a Tile.** Confirmed on the live
+server: `"background" in Scene.implementation.schema.fields` is `false` on v14.363, and every
+working map (Foundry's own default scene, the Czepeku packs) stores its image as a Tile with
+`texture.src`. Writing `background.src` there is silently dropped, leaving a scene with correct
+walls, lights and tokens but no picture — flat grey with the light polygons showing through.
+
+`ensureBackground()` branches on the schema: the old field where it exists, otherwise a locked
+Tile at `sort: -1000`, flagged `mapBackground` so rebuilds can find and resize it. **Check the
+schema, never the version number** — this field has now moved twice.
+
 **Set the background with dot notation and verify it.** `background` is a nested
 `TextureData` field, and a subfield passed inside a larger create/update payload can be
 dropped — leaving a scene with correct walls, lights and tokens but no map image, which
