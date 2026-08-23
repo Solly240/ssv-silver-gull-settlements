@@ -196,6 +196,17 @@ authored at 0.49/0.59 is on the same building at every window shape. If you ever
 (`spawns`, `exits`, `posts`, `waypoints`, `passable`, `gridSize`) that the wander engine and
 the doorway check read at runtime.
 
+**Set the background with dot notation and verify it.** `background` is a nested
+`TextureData` field, and a subfield passed inside a larger create/update payload can be
+dropped — leaving a scene with correct walls, lights and tokens but no map image, which
+renders as flat grey and looks like the whole thing is broken. `ensureBackground()` re-reads
+the value after writing and retries with `{"background.src": ...}`, then legacy `img`, and
+shouts if neither takes.
+
+Diagnosing a blank map: `SilverGullSettlements.inspectScenes()` prints a table of what each
+scene actually has (background, size, wall and light counts, grid), and
+`SilverGullSettlements.fixBackgrounds()` re-applies every map image.
+
 **Ask `buildable(loc)`, never `loc.interior.plan`.** There are two kinds of interior —
 analysed off finished art (`geometry`) and derived from an ASCII floorplan (`plan`). Guarding
 on `plan` alone silently excluded every analysed map: `buildScene` returned null so entering

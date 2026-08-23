@@ -365,6 +365,28 @@ function sceneFor(locId) {
   return (id && game.scenes.get(id)) || game.scenes.getName(sceneNameFor(city, loc)) || null;
 }
 
+/** Make sure a scene's background image is what we asked for, and say so if it will not take. */
+async function ensureBackground(scene, src) {
+  if (!scene || !src) return;
+  const got = () => scene.background?.src || scene.img || null;
+  if (got() === src) return;
+  try {
+    await scene.update({ "background.src": src });
+  } catch (e) {
+    console.error(`${MODULE_ID} | could not set background.src`, e);
+  }
+  if (got() !== src) {
+    // Older scene shapes used a flat `img` field.
+    try { await scene.update({ img: src }); } catch (e) { /* not this version's shape */ }
+  }
+  if (got() !== src) {
+    console.error(`${MODULE_ID} | ${scene.name}: background is "${got()}", wanted "${src}"`);
+    ui.notifications?.error(`${scene.name}: could not set the map image. See the console.`);
+  } else {
+    console.log(`${MODULE_ID} | ${scene.name}: background set to ${src}`);
+  }
+}
+
 function wallDocs(geo) {
   return geo.walls.map((w) => ({
     c: w.c, move: w.move, sight: w.sight, light: w.light, sound: w.sound, door: w.door, ds: w.ds,
@@ -527,6 +549,12 @@ async function buildScene(cityId, locId, { rebuild = false } = {}) {
   } else {
     return scene;
   }
+
+  // Verify the background actually stuck. A nested TextureData subfield passed inside a
+  // larger create/update payload can be dropped; the dot-notation form is the reliable way
+  // to set it, and a scene with no background renders as flat grey with the walls and
+  // lights present, which looks like the map "not working".
+  await ensureBackground(scene, assetPath(loc.interior.img));
 
   await scene.createEmbeddedDocuments("Wall", wallDocs(geo));
   const lights = lightDocs(geo);
@@ -1476,6 +1504,40 @@ Hooks.once("ready", async () => {
     rebuild: gmRebuild,
     rebuildAll: gmRebuildAll,
     staleScenes: () => staleScenes().map((x) => x.scene.name),
+    /** What every settlement scene actually has on it — for diagnosing a blank map. */
+    inspectScenes: () => {
+      const rows = [];
+      for (const city of cities()) {
+        for (const loc of city.locations || []) {
+          const scene = sceneFor(loc.id);
+          if (!scene) { rows.push({ loc: loc.id, scene: "(none)" }); continue; }
+          rows.push({
+            loc: loc.id, scene: scene.name,
+            background: scene.background?.src || scene.img || "(none)",
+            wanted: assetPath(loc.interior?.img),
+            size: `${scene.width}x${scene.height}`,
+            walls: scene.walls.size, lights: scene.lights.size,
+            grid: `${scene.grid?.type}/${scene.grid?.size}`,
+          });
+        }
+      }
+      console.table(rows);
+      return rows;
+    },
+    fixBackgrounds: async () => {
+      if (!game.user.isGM) return;
+      let n = 0;
+      for (const city of cities()) {
+        for (const loc of city.locations || []) {
+          const scene = sceneFor(loc.id);
+          if (!scene || !loc.interior?.img) continue;
+          await ensureBackground(scene, assetPath(loc.interior.img));
+          n++;
+        }
+      }
+      ui.notifications?.info(`Checked the map image on ${n} scene(s).`);
+      return n;
+    },
     getContent: () => CONTENT,
     getState,
     geometryFor: (locId) => {
