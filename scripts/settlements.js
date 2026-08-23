@@ -492,6 +492,7 @@ async function buildScene(cityId, locId, { rebuild = false } = {}) {
         gridSize: geo.gridSize,
         cols: geo.cols,
         rows: geo.rows,
+        geoHash: S().geometryHash(geo, loc.interior.img),
       },
     },
   };
@@ -528,8 +529,51 @@ async function buildScene(cityId, locId, { rebuild = false } = {}) {
   return scene;
 }
 
+/**
+ * The scene for a location, built if missing and repaired if the content has moved on.
+ *
+ * A released map change alters the image, its dimensions and every wall coordinate. Without
+ * this check the old scene keeps its old size and Foundry stretches the new artwork across
+ * it — a blurry, misaligned map whose walls no longer match the picture. Requiring the GM to
+ * remember a manual Rebuild after every update is not a fix.
+ */
 async function ensureScene(cityId, locId) {
-  return sceneFor(locId) || buildScene(cityId, locId, { rebuild: false });
+  const existing = sceneFor(locId);
+  if (!existing) return buildScene(cityId, locId, { rebuild: false });
+  if (!isActiveGM()) return existing;
+
+  const city = cityById(cityId);
+  const loc = locById(city, locId);
+  if (!loc?.interior) return existing;
+
+  const geo = S().deriveGeometry(loc.interior);
+  const want = S().geometryHash(geo, loc.interior.img);
+  const have = existing.getFlag(MODULE_ID, "geoHash");
+  const sized = existing.width === geo.width && existing.height === geo.height;
+  if (have === want && sized) return existing;
+
+  console.log(`${MODULE_ID} | ${existing.name} is out of date (${have || "no hash"} -> ${want}); rebuilding`);
+  ui.notifications?.info(`${loc.name}: the map changed, rebuilding the scene.`);
+  return buildScene(cityId, locId, { rebuild: true });
+}
+
+/** Scenes whose map has moved on since they were built. */
+function staleScenes() {
+  const out = [];
+  for (const city of cities()) {
+    for (const loc of city.locations || []) {
+      if (!loc.interior) continue;
+      const scene = sceneFor(loc.id);
+      if (!scene) continue;
+      try {
+        const geo = S().deriveGeometry(loc.interior);
+        const want = S().geometryHash(geo, loc.interior.img);
+        const sized = scene.width === geo.width && scene.height === geo.height;
+        if (scene.getFlag(MODULE_ID, "geoHash") !== want || !sized) out.push({ city, loc, scene });
+      } catch (e) { /* a plan we cannot derive is not a staleness problem */ }
+    }
+  }
+  return out;
 }
 
 async function gmRebuild(locId) {
@@ -833,6 +877,7 @@ async function stepNpc(scene, token) {
 
 async function wanderTick() {
   if (!isActiveGM()) return;
+  if (game.paused) return;
   if (!game.settings.get(MODULE_ID, "wander")) return;
   for (const scene of settlementScenes()) {
     if (!sceneHasAudience(scene)) continue;
@@ -856,6 +901,7 @@ async function wanderTick() {
 
 let lastChatter = 0;
 function maybeChatter() {
+  if (game.paused) return;
   if (!game.settings.get(MODULE_ID, "chatter")) return;
   const now = Date.now();
   if (now - lastChatter < 18000) return;
@@ -1361,6 +1407,20 @@ Hooks.once("ready", async () => {
     if (!state.currentCityId && cities().length) await setState({ currentCityId: cities()[0].id });
   }
 
+  // A content update changes map dimensions and every wall coordinate. Say so on load
+  // rather than letting the GM discover it as a stretched, misaligned map mid-session.
+  if (isActiveGM()) {
+    const stale = staleScenes();
+    if (stale.length) {
+      ui.notifications?.warn(
+        `Settlements: ${stale.length} scene${stale.length === 1 ? "" : "s"} built from an older map. ` +
+        `Press C, open the GM panel and use Rebuild every scene — or just walk in, which repairs it.`,
+        { permanent: true }
+      );
+      console.log(`${MODULE_ID} | stale scenes:`, stale.map((x) => x.scene.name));
+    }
+  }
+
   game.socket.on(SOCKET, onSocket);
   patchTokenClick();
   startWander();
@@ -1399,6 +1459,7 @@ Hooks.once("ready", async () => {
     setCity: (id) => gmCall("setCity", { id }),
     rebuild: gmRebuild,
     rebuildAll: gmRebuildAll,
+    staleScenes: () => staleScenes().map((x) => x.scene.name),
     getContent: () => CONTENT,
     getState,
     geometryFor: (locId) => {

@@ -196,6 +196,16 @@ authored at 0.49/0.59 is on the same building at every window shape. If you ever
 (`spawns`, `exits`, `posts`, `waypoints`, `passable`, `gridSize`) that the wander engine and
 the doorway check read at runtime.
 
+**Scenes repair themselves when the content moves on.** Every scene stores a `geoHash` of
+the map it was built from. `ensureScene()` compares it on entry and rebuilds when it differs,
+and the active GM gets a warning on load listing any stale scenes.
+
+Without this, a released map change left the old scene at its old dimensions with the new
+artwork stretched across it — blurry, misaligned, and with walls that no longer matched the
+picture. Expecting the GM to remember a manual Rebuild after every update is not a fix.
+Note that an automatic repair *does* discard hand-placed walls, which is the trade: a scene
+whose map has genuinely changed cannot keep geometry drawn against the old one.
+
 **Rebuild is destructive but targeted.** It deletes and re-derives every wall, every light
 and every token flagged `npcKey`. Player tokens and anything you added by hand survive. The
 GM cog warns before doing it.
@@ -351,8 +361,9 @@ only be opened by clicking its shopkeeper. The GM is never gated.
 - **Scenes are gridless by default** (`interior.gridless: false` opts back into a square
   grid). The maps are illustrated art whose architecture never lines up with a square grid,
   so drawing one over the top just fights the picture.
-- **The wander engine** runs on the active GM only, pauses when a combat is running in that
-  scene, when nobody is viewing it, and when the venue is shut for the current time of day.
+- **The wander engine** runs on the active GM only, and stops when the **game is paused**,
+  when a combat is running in that scene, when nobody is viewing it, and when the venue is
+  shut for the current time of day. Pause is easy to forget and very obvious at the table.
 - **NPCs move in pixels, not cells.** Each one keeps a small mind in memory (`minds`): pick
   somewhere to stand, walk there in short steps, then stay put for 6-22 seconds doing
   whatever they came over to do. Steps are tested against the wall segments, so a gridless

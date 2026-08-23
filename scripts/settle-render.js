@@ -207,6 +207,28 @@
   SSVSET.geometryFromAnalysis = geometryFromAnalysis;
 
   /**
+   * A stable fingerprint of everything a scene is built from.
+   *
+   * Lets the module notice that a released content update changed a map and repair the
+   * scene, instead of silently leaving the old dimensions with the new artwork stretched
+   * across them.
+   */
+  function geometryHash(geo, img) {
+    const parts = [
+      img || "", geo.width, geo.height, geo.gridSize,
+      geo.walls.length, geo.lights.length, geo.exits.length,
+      JSON.stringify(geo.walls.map((w) => w.c)),
+      JSON.stringify(geo.lights.map((l) => [l.x, l.y, l.dim, l.bright])),
+      JSON.stringify(geo.spawns.map((p) => [p.x, p.y])),
+      JSON.stringify(geo.exits),
+    ].join("|");
+    let h = 5381;
+    for (let i = 0; i < parts.length; i++) h = ((h << 5) + h + parts.charCodeAt(i)) >>> 0;
+    return `${h.toString(36)}-${parts.length.toString(36)}`;
+  }
+  SSVSET.geometryHash = geometryHash;
+
+  /**
    * Derive every piece of Foundry geometry from an interior definition.
    *
    * Two kinds of interior: one analysed off a finished piece of map art (preferred — the
