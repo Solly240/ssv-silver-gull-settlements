@@ -477,6 +477,25 @@
        },
        "wander": false,
        "quest": true,
+       "dossier": {
+        "race": "Human",
+        "age": "Sixties",
+        "stats": "AC 11 \u00b7 HP 30 \u00b7 Insight +4 \u00b7 knows everyone on the moon by name",
+        "look": "Broad, unhurried, two fingers missing from the pouring hand. Never sits down.",
+        "personality": "Reads a stranger before they reach the counter and prices them accordingly. Genuinely likes people; will still take your money.",
+        "voice": "Slow, warm, and entirely unbothered. Long pauses you will want to fill."
+       },
+       "quests": [
+        {
+         "id": "frostwatch-cantina",
+         "summary": "A spacer shipped out owing him a considerable tab. He is not angry about it \u2014 he just wants it settled, and he will trade what he knows about the moon for it. He also has a drunk in the corner he would like moved.",
+         "opening": "There's a tab on my board nobody's paid. Man shipped out and left it.",
+         "reward": {
+          "gold": 60,
+          "note": "Everything he knows about the other two settlements and the signal."
+         }
+        }
+       ],
        "blurb": "Broad, unhurried, and missing two fingers on the pouring hand. Has run the Tab for eleven years and can price a stranger before they reach the counter.",
        "talkingPoints": [
         "You'll be the ones who came down hard on the north flats. Heard your engines from here.",
@@ -711,6 +730,27 @@
        },
        "wander": false,
        "quest": true,
+       "dossier": {
+        "race": "Half-orc",
+        "age": "Forties",
+        "stats": "AC 14 \u00b7 HP 45 \u00b7 Str +3 \u00b7 Athletics +5, cutting rig counts as a martial weapon",
+        "look": "Three coats and a welding rig, goggles pushed up on a scarred forehead.",
+        "personality": "Straight dealer, no small talk, quietly proud of the yard. Knows the provenance of every plate in it and will tell you at length.",
+        "voice": "Flat and practical. Says the price once."
+       },
+       "quests": [
+        {
+         "id": "long-salvage",
+         "summary": "He will sell pick rights to the wreck field by the hour \u2014 but there is a piece in the back he cannot identify, and he wants someone who has seen more of the galaxy than he has to tell him what it is.",
+         "opening": "I've a piece in the back I can't identify. Not Concord. Not anything.",
+         "reward": {
+          "gold": 100,
+          "item": "res:promethium-jug",
+          "qty": 1,
+          "note": "Free pick rights for a day, and the unidentified piece if they name it."
+         }
+        }
+       ],
        "blurb": "Wrapped in three coats and a welding rig. Knows the provenance of every plate in the yard.",
        "talkingPoints": [
         "Pick rights are by the hour. Cut what you like, I weigh it on the way out.",
@@ -801,6 +841,36 @@
        "portrait": "assets/portraits/ilsa-varn.webp",
        "wander": false,
        "quest": true,
+       "dossier": {
+        "race": "Human",
+        "age": "Late fifties",
+        "stats": "AC 12 \u00b7 HP 22 \u00b7 Wis +3 \u00b7 Investigation +5, Technology +6",
+        "look": "Grey at the temples, three days without proper sleep, a survey company coat with the insignia unpicked. One hand never quite still.",
+        "personality": "Competent and frightened, and would much rather you noticed the first. Gives orders out of habit to people who do not work for her.",
+        "voice": "Clipped and formal. Answers the question you should have asked, not the one you did."
+       },
+       "quests": [
+        {
+         "id": "frostwatch-trouble",
+         "summary": "The outpost's fusion tap is browning out and she has no parts and no engineer. She needs the couplings reseated in the reactor housing under the main hab \u2014 cold, cramped, and iced over.",
+         "opening": "You have a ship. That already makes you the most useful thing to land here this year.",
+         "reward": {
+          "gold": 150,
+          "item": "res:promethium-jug",
+          "qty": 2,
+          "note": "Salvage-pick rights across the whole shelf \u2014 worth more than the coin."
+         }
+        },
+        {
+         "id": "trace-signal",
+         "summary": "She logs every transmission that crosses the moon. There is one she has never been able to file, coming from the ice to the east. She will hand over the logs if someone will go and look.",
+         "opening": "I log every transmission. There is one I have never been able to file.",
+         "reward": {
+          "gold": 0,
+          "note": "Her transmission logs, and whatever is out there."
+         }
+        }
+       ],
        "blurb": "Rattled and hiding it badly. Running an outpost on a failing fusion tap and no help coming.",
        "talkingPoints": [
         "You have a ship. That already makes you the most useful thing to land here this year.",
@@ -1239,6 +1309,25 @@
        "role": "Colony leader",
        "wander": false,
        "quest": true,
+       "dossier": {
+        "race": "Human",
+        "age": "Seventies",
+        "stats": "AC 10 \u00b7 HP 18 \u00b7 Wis +4 \u00b7 Insight +6, Persuasion +5",
+        "look": "Small, upright, wrapped in layered furs over a Concord-issue thermal suit.",
+        "personality": "Entirely used to deciding who lives here and who does not. Unhurried, unimpressed, and watching what you do with your hands.",
+        "voice": "Quiet. Never repeats herself."
+       },
+       "quests": [
+        {
+         "id": "kettle-trade",
+         "summary": "The colony needs medicine, reactor parts and water filters, and has things to trade that are not on any manifest. She will not say where they came from.",
+         "opening": "We are not on your charts because we asked not to be.",
+         "reward": {
+          "gold": 200,
+          "note": "Trade access to the Hollow, and a cache of supplies from under the ice."
+         }
+        }
+       ],
        "blurb": "Old, unhurried, and entirely used to deciding who lives here.",
        "talkingPoints": [
         "We are not on your charts because we asked not to be.",

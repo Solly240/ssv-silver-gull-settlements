@@ -203,7 +203,75 @@ Player clients get told what happened over the socket (`view`, `hub`, `refresh`,
 
 ---
 
-## 7. The shop bridge
+## 7. Quest-givers
+
+An NPC with a `quests` list becomes a quest-giver. A **player** clicking one gets a card
+naming who they walked up to and a "The GM will play this character" notice — never the
+summary or the reward. The **GM** gets the full dossier, opened automatically on their screen
+at the same moment, with a whispered chat line saying who approached whom. It can be reopened
+any time from the hub's ⚙ panel.
+
+### Four stages, and why "ready" is ours
+
+`state.quests[key] = "offered" | "accepted" | "ready" | "complete"`, keyed by the journal
+quest id (or `locId:npcKey:index` when the quest is settlement-local).
+
+The journal only knows **hidden / active / complete**, so *ready to hand in* has no
+equivalent there and lives on our side alone — it is what lets a giver become the place the
+job gets handed back in. The other transitions mirror outward:
+
+| our stage | journal |
+|---|---|
+| offered | quest stays hidden (GM-only) |
+| accepted | `revealQuest(id)` — appears in the party's Quests tab |
+| ready | *nothing* — ours alone |
+| complete | `setQuestStatus(id, "complete")`, then payout |
+
+### Authoring
+
+```jsonc
+"dossier": { "race": "Human", "age": "Late fifties",
+             "stats": "AC 12 · HP 22 · Wis +3",
+             "look": "...", "personality": "...", "voice": "...", "actor": "Ilsa Varn" },
+"quests": [
+  { "id": "frostwatch-trouble",          // a journal quest id; omit for a local-only job
+    "summary": "what the job is — GM only",
+    "opening": "a line to read aloud",
+    "reward": { "gold": 150, "item": "res:promethium-jug", "qty": 2, "note": "...",
+                "standing": { "faction": "iron-directorate", "delta": 1 } } }
+]
+```
+
+`build_settlements.py` resolves every `quests[].id` against the journal's `content.json` and
+every reward item against the shop catalogue, and **errors** on a miss — a quest id that does
+not resolve silently does nothing when accepted, which is the worst way to find out. Both
+checks are skipped with a warning when the sibling module is not checked out beside us.
+
+Faction ids are `iron-directorate`, `sovereign-horizon`, `apostles-threshold`. Most quests
+have no `standing` block; only faction jobs should.
+
+### Payout
+
+`payoutQuest()` runs on Complete, and can also be fired alone from the dossier:
+`shop.awardTreasury(gold * 100, ...)` — **the treasury is integer copper** — then
+`shop.grantItem(...)`, then `politics.adjustStanding(...)`. Every step is optional and
+degrades to a note in chat when that module is off, so a missing sibling never blocks the
+rest of the payout.
+
+**Never hand-roll the item grant.** The shop's `grantItem` shares `itemDataFor()` with the
+buy path, which is what stamps the ship-combat `resKind`/`resAmount`/`overcharge` flags onto
+`res:*` rewards. A copy looks right and quietly stops fuel and power cells feeding the ship
+gauges.
+
+### Markers
+
+A sigil floats over givers with an `offered` or `ready` quest, drawn as our own PIXI child on
+the Token in the `drawToken`/`refreshToken` hooks and behind the world setting `questMarkers`.
+Deliberately **not** `TokenDocument#overlayEffect`, whose schema moved between v12 and v13.
+Every marker path is wrapped in try/catch: one that fails to draw must never take the canvas
+with it.
+
+## 8. The shop bridge
 
 The NPC card's **Browse wares** button calls
 `game.modules.get("ssv-silver-gull-shop").api.openShop(shopId)`.
@@ -229,7 +297,7 @@ only be opened by clicking its shopkeeper. The GM is never gated.
 
 ---
 
-## 8. Gotchas
+## 9. Gotchas
 
 - **Escape goes through `game.keybindings`, never a raw listener.** It is registered at
   `KEYBINDING_PRECEDENCE.PRIORITY` and returns `false` when neither the card nor the hub is
@@ -284,7 +352,7 @@ only be opened by clicking its shopkeeper. The GM is never gated.
 
 ---
 
-## 9. Release
+## 10. Release
 
 ```bash
 cd "vtt/settlements/ssv-silver-gull-settlements"

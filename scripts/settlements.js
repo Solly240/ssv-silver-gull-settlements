@@ -32,6 +32,7 @@ async function loadContent() {
     console.error(`${MODULE_ID} | could not load settlements.json`, e);
     CONTENT = { version: "0", cities: [] };
   }
+  invalidateState();   // currentCityId falls back to cities()[0] — drop anything cached before content landed
   return CONTENT;
 }
 
@@ -47,7 +48,13 @@ function findLoc(locId) {
   return { city: null, loc: null };
 }
 
-const getState = () => {
+// Cached: getState() allocates a fresh object and makes Foundry deserialise the setting on
+// every call, and onTokenMoved hits it while a token is being dragged. The stored value only
+// ever changes through a settings write, which fires the onChange that clears this.
+let _stateCache = null;
+const invalidateState = () => { _stateCache = null; };
+const getState = () => (_stateCache ??= _buildState());
+const _buildState = () => {
   const raw = game.settings.get(MODULE_ID, "state") || {};
   return {
     currentCityId: raw.currentCityId ?? cities()[0]?.id ?? null,
@@ -57,6 +64,7 @@ const getState = () => {
     leaveLocked: raw.leaveLocked ?? {},
     whereIs: raw.whereIs ?? {},
     sceneKeys: raw.sceneKeys ?? {},
+    quests: raw.quests ?? {},
   };
 };
 
@@ -103,6 +111,7 @@ function ensureRoot(id) {
 const hubRoot = () => ensureRoot("ssvset-panel");
 const cardRoot = () => ensureRoot("ssvset-card");
 const leaveRoot = () => ensureRoot("ssvset-leave");
+const dossierRoot = () => ensureRoot("ssvset-dossier");
 
 const hubOpen = () => hubRoot().style.display === "block";
 const cardOpen = () => !!cardRoot().firstChild;
@@ -151,6 +160,26 @@ function buildCtx() {
     openShop: (shopId, npc) => openShopFor(shopId, npc),
     openSheet: (npc) => game.actors.getName(npc.actor)?.sheet?.render(true),
     say: (npc, line) => sayLine(npc, line),
+    acceptedTitles,
+    closeDossier,
+    advanceQuest: (key, quest, npc, loc) => gmAdvanceQuest(key, quest, npc, loc?.id),
+    stepQuestBack: (key) => gmStepQuestBack(key),
+    payout: (quest, npc) => payoutQuest(quest, npc),
+    journalQuest: (id) => { try { return journalApi()?.getQuest?.(id) || null; } catch (e) { return null; } },
+    openJournalQuest: (id) => {
+      const api = journalApi();
+      if (!api) return ui.notifications?.warn("The journal module is not available.");
+      api.refresh?.();
+      ui.notifications?.info("Open the Ship's Journal — Quests tab.");
+    },
+    itemInfo: (catId) => {
+      try {
+        const cat = game.modules.get(SHOP_ID)?.api?.getCatalogue?.();
+        return (cat?.items || []).find((i) => i.id === catId) || null;
+      } catch (e) { return null; }
+    },
+    questGivers: () => questGiversIn(cityById(getState().currentCityId)),
+    openDossier: (locId, npcKey) => openDossier(locId, npcKey),
     setTimeOfDay: (t) => gmCall("setTimeOfDay", { t }),
     setCity: (id) => gmCall("setCity", { id }),
     reveal: (locId, v) => gmCall("reveal", { locId, v }),
@@ -227,7 +256,12 @@ async function openNpcCard(tokenDoc) {
   const { loc } = findLoc(locId);
   const npc = (loc?.npcs || []).find((n) => n.key === npcKey);
   if (!npc) return;
+
+  // The GM gets the full brief; everyone else gets the hand-off card. Tell the GM who is
+  // talking to whom so the dossier is already open when the conversation starts.
+  if (game.user.isGM) return openDossier(locId, npcKey);
   S().renderNpcCard(cardRoot(), buildCtx(), { ...npc, locId: locId }, loc);
+  if (npc.quests?.length) emit({ toGM: true, type: "questGiver", npcKey, locId, userId: game.user.id });
 }
 
 function sayLine(npc, line) {
@@ -645,6 +679,10 @@ let wanderTimer = null;
 /* Per-token behaviour. Not persisted: tokens carry their own position, and a fresh mind on
  * reload is fine. Modes: "busy" (standing somewhere doing something) and "walking". */
 const minds = new Map();
+// gmRebuild deletes and recreates NPC tokens with fresh ids, so without this every rebuild
+// left its predecessors' entries behind for the lifetime of the session — and spotTaken
+// walks this map for every candidate spot.
+Hooks.on("deleteToken", (doc) => { minds.delete(doc.id); });
 
 function settlementScenes() {
   return game.scenes.filter((s) => s.getFlag(MODULE_ID, "locId"));
@@ -852,12 +890,230 @@ function showBubble(sceneId, tokenId, line) {
 
 function startWander() {
   stopWander();
+  // Only a GM ever drives NPC movement (wanderTick returns immediately otherwise), so
+  // player clients have no reason to wake on this interval at all. Gate on isGM rather
+  // than isActiveGM so GM handover still works — wanderTick re-checks isActiveGM itself.
+  if (!game.user.isGM) return;
   const ms = Number(game.settings.get(MODULE_ID, "wanderMs")) || 2500;
-  wanderTimer = setInterval(() => wanderTick().catch((e) => console.error(`${MODULE_ID} |`, e)), ms);
+  wanderTimer = setInterval(() => {
+    // Nothing to animate while the tab is hidden; the next visible tick picks it up.
+    if (document.hidden) return;
+    wanderTick().catch((e) => console.error(`${MODULE_ID} |`, e));
+  }, ms);
 }
 function stopWander() {
   if (wanderTimer) clearInterval(wanderTimer);
   wanderTimer = null;
+}
+
+/* ------------------------------------------------------------------ *
+ * Quest-givers
+ * ------------------------------------------------------------------ */
+
+const JOURNAL_ID = "ssv-silver-gull-journal";
+const journalApi = () => game.modules.get(JOURNAL_ID)?.api || null;
+
+let _dossier = null; // {npcKey, locId}
+
+function closeDossier() {
+  _dossier = null;
+  dossierRoot().innerHTML = "";
+}
+
+function npcAt(locId, npcKey) {
+  const { city, loc } = findLoc(locId);
+  const npc = (loc?.npcs || []).find((n) => n.key === npcKey) || null;
+  return { city, loc, npc };
+}
+
+function openDossier(locId, npcKey) {
+  if (!game.user.isGM) return;
+  const { loc, npc } = npcAt(locId, npcKey);
+  if (!npc) return;
+  _dossier = { npcKey, locId };
+  S().renderDossier(dossierRoot(), buildCtx(), npc, loc);
+}
+
+function drawDossier() {
+  if (!_dossier) return;
+  openDossier(_dossier.locId, _dossier.npcKey);
+}
+
+/** Titles of jobs this person has already given the party — shown on the player's card. */
+function acceptedTitles(npc, loc) {
+  const state = getState();
+  const api = journalApi();
+  return (npc.quests || [])
+    .map((q, i) => ({ q, key: S().questKey(loc, npc, q, i) }))
+    .filter(({ key }) => ["accepted", "ready", "complete"].includes(S().stageOf(state, key)))
+    .map(({ q }) => (q.id && api?.getQuest?.(q.id)?.name) || q.title || q.id)
+    .filter(Boolean);
+}
+
+/**
+ * Move a quest to its next stage, mirroring into the journal.
+ *
+ * Our four stages do not map one-to-one: the journal only knows hidden / active / complete,
+ * so "ready to hand in" is ours alone and simply does not touch it.
+ */
+async function gmAdvanceQuest(key, quest, npc, locId) {
+  if (!isActiveGM()) return;
+  const state = getState();
+  const from = S().stageOf(state, key);
+  const to = { offered: "accepted", accepted: "ready", ready: "complete" }[from];
+  if (!to) return;
+
+  await setState({ quests: { ...state.quests, [key]: to } });
+
+  const api = journalApi();
+  if (quest?.id && api) {
+    try {
+      if (to === "accepted") await api.revealQuest(quest.id);
+      if (to === "complete") await api.setQuestStatus(quest.id, "complete");
+      api.refresh?.();
+    } catch (e) {
+      console.error(`${MODULE_ID} | journal update failed for ${quest.id}`, e);
+      ui.notifications?.warn("Could not update the journal — see the console.");
+    }
+  }
+
+  const name = (quest?.id && api?.getQuest?.(quest.id)?.name) || quest?.title || "the job";
+  if (to === "accepted") {
+    ChatMessage.create({ content: `<p><em>${npc?.name || "Someone"} gives the crew a job: <strong>${name}</strong>.</em></p>` });
+  }
+  if (to === "complete") {
+    await payoutQuest(quest, npc);
+    ChatMessage.create({ content: `<p><em><strong>${name}</strong> — settled up with ${npc?.name || "someone"}.</em></p>` });
+  }
+  refreshEveryone();
+  refreshLocal();
+}
+
+async function gmStepQuestBack(key) {
+  if (!isActiveGM()) return;
+  const state = getState();
+  const from = S().stageOf(state, key);
+  const to = { accepted: "offered", ready: "accepted", complete: "ready" }[from];
+  if (!to) return;
+  await setState({ quests: { ...state.quests, [key]: to } });
+  refreshEveryone();
+  refreshLocal();
+}
+
+/**
+ * Hand over a reward. Every step is optional and degrades to a note if that module is off,
+ * so a missing sibling never blocks the rest of the payout.
+ */
+async function payoutQuest(quest, npc) {
+  if (!game.user.isGM) return;
+  const reward = quest?.reward;
+  if (!reward) return;
+  const shop = game.modules.get(SHOP_ID)?.api;
+  const done = [];
+
+  if (reward.gold) {
+    if (shop?.awardTreasury) {
+      // The treasury is integer copper; gp is display only.
+      await shop.awardTreasury(Math.round(reward.gold * 100), `Quest reward — ${npc?.name || "quest"}`);
+      done.push(`${reward.gold} gp to the treasury`);
+    } else done.push(`${reward.gold} gp (shop module off — pay by hand)`);
+  }
+
+  if (reward.item) {
+    if (shop?.grantItem) {
+      const res = await shop.grantItem({ catId: reward.item, qty: reward.qty || 1, dest: reward.dest || "ship" });
+      done.push(res?.ok ? `${res.name}${res.qty > 1 ? ` ×${res.qty}` : ""} to ${res.actor}`
+                        : `item failed: ${res?.reason || "unknown"}`);
+    } else done.push(`${reward.item} (shop module off — hand it over yourself)`);
+  }
+
+  if (reward.standing) {
+    const pol = game.modules.get(POLITICS_ID)?.api;
+    if (pol?.adjustStanding) {
+      await pol.adjustStanding(reward.standing.faction, reward.standing.delta,
+        `Quest — ${npc?.name || "settlement"}`);
+      done.push(`${reward.standing.faction} ${reward.standing.delta >= 0 ? "+" : ""}${reward.standing.delta}`);
+    } else done.push(`standing change (politics module off)`);
+  }
+
+  if (done.length) {
+    ChatMessage.create({ content: `<p><strong>Paid out:</strong> ${done.join(" · ")}</p>` });
+    ui.notifications?.info(`Paid out: ${done.join(", ")}`);
+  }
+}
+
+/** Every quest-giver in a settlement, with how far along each of their jobs is. */
+function questGiversIn(city) {
+  const state = getState();
+  const out = [];
+  for (const loc of city?.locations || []) {
+    for (const npc of loc.npcs || []) {
+      if (!npc.quests?.length) continue;
+      out.push({
+        locId: loc.id, locName: loc.name, npcKey: npc.key, name: npc.name,
+        stages: npc.quests.map((q, i) => S().stageOf(state, S().questKey(loc, npc, q, i))),
+      });
+    }
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------ *
+ * Quest markers over tokens
+ * ------------------------------------------------------------------ *
+ *
+ * Drawn as our own PIXI child on the Token rather than via TokenDocument#overlayEffect,
+ * whose schema moved between v12 and v13. Everything is guarded: a marker that fails to
+ * draw must never take the canvas down with it.
+ */
+
+const MARKER = "ssvsetQuestMarker";
+
+function markerWanted(tokenDoc) {
+  if (!game.settings.get(MODULE_ID, "questMarkers")) return false;
+  const npcKey = tokenDoc.getFlag(MODULE_ID, "npcKey");
+  const locId = tokenDoc.getFlag(MODULE_ID, "locId");
+  if (!npcKey || !locId) return false;
+  const { npc } = npcAt(locId, npcKey);
+  if (!npc?.quests?.length) return false;
+  return S().pendingQuests(npc, getState()).length > 0;
+}
+
+function drawMarker(token) {
+  try {
+    const want = markerWanted(token.document);
+    const existing = token[MARKER];
+    if (!want) {
+      if (existing) { existing.destroy({ children: true }); token[MARKER] = null; }
+      return;
+    }
+    if (existing && !existing.destroyed) {
+      existing.x = token.w / 2;
+      existing.y = -8;
+      return;
+    }
+    const g = new PIXI.Container();
+    const size = Math.max(14, Math.min(28, token.w * 0.28));
+    const glow = new PIXI.Graphics();
+    glow.beginFill(0xf2b03d, 0.22).drawCircle(0, 0, size * 0.9).endFill();
+    const mark = new PIXI.Graphics();
+    mark.beginFill(0xf2b03d, 1).lineStyle(2, 0x2b1c06, 1)
+      .moveTo(0, -size * 0.55)
+      .lineTo(size * 0.34, size * 0.45)
+      .lineTo(-size * 0.34, size * 0.45)
+      .closePath().endFill();
+    g.addChild(glow, mark);
+    g.x = token.w / 2;
+    g.y = -8;
+    token[MARKER] = token.addChild(g);
+  } catch (e) {
+    console.warn(`${MODULE_ID} | quest marker failed`, e);
+  }
+}
+
+function refreshMarkers() {
+  if (!canvas?.ready) return;
+  for (const token of canvas.tokens?.placeables || []) drawMarker(token);
 }
 
 /* ------------------------------------------------------------------ *
@@ -908,6 +1164,17 @@ async function handleGm(msg) {
     case "enter": return gmEnter(msg.userId, msg.locId);
     case "leave": return gmLeave(msg.userId);
     case "recall": return gmLeave(msg.userId);
+    case "questGiver": {
+      // A player walked up to a quest-giver: open the brief and say who it was.
+      openDossier(msg.locId, msg.npcKey);
+      const { npc } = npcAt(msg.locId, msg.npcKey);
+      const who = game.users.get(msg.userId);
+      ChatMessage.create({
+        content: `<p><em>${who?.character?.name || who?.name || "Someone"} approaches <strong>${npc?.name || "an NPC"}</strong>.</em></p>`,
+        whisper: ChatMessage.getWhisperRecipients("GM").map((u) => u.id),
+      });
+      return;
+    }
     case "ensureShop": {
       const { loc } = findLoc(msg.locId);
       if (loc) await ensureShopsFor(loc);
@@ -959,6 +1226,8 @@ function onSocket(msg) {
 function refreshLocal() {
   drawHub();
   drawLeave();
+  drawDossier();
+  refreshMarkers();
 }
 
 /* ------------------------------------------------------------------ *
@@ -1013,7 +1282,7 @@ const combatLocId = (combat) => combat?.scene?.getFlag?.(MODULE_ID, "locId") || 
 Hooks.once("init", () => {
   game.settings.register(MODULE_ID, "state", {
     scope: "world", config: false, type: Object, default: {},
-    onChange: () => refreshLocal(),
+    onChange: () => { invalidateState(); refreshLocal(); },
   });
   const bool = (key, def) =>
     game.settings.register(MODULE_ID, key, {
@@ -1021,6 +1290,7 @@ Hooks.once("init", () => {
       hint: game.i18n.localize(`${MODULE_ID}.settings.${key}.hint`),
       scope: "world", config: true, type: Boolean, default: def,
     });
+  bool("questMarkers", true);
   bool("wander", true);
   bool("chatter", true);
   bool("autoLockInCombat", true);
@@ -1045,6 +1315,7 @@ Hooks.once("init", () => {
     precedence: CONST.KEYBINDING_PRECEDENCE?.PRIORITY ?? 0,
     onDown: () => {
       if (cardOpen()) { closeCard(); return true; }
+      if (_dossier) { closeDossier(); return true; }
       if (hubOpen()) { closeHub(); return true; }
       return false;
     },
@@ -1082,6 +1353,7 @@ Hooks.once("ready", async () => {
   hubRoot().style.display = "none";
   hubRoot().innerHTML = "";
   closeCard();
+  closeDossier();
   leaveRoot().innerHTML = "";
 
   if (game.user.isGM) {
@@ -1096,7 +1368,9 @@ Hooks.once("ready", async () => {
   Hooks.on("updateToken", (doc, change) => {
     if (("x" in change || "y" in change)) onTokenMoved(doc);
   });
-  Hooks.on("canvasReady", () => drawLeave());
+  Hooks.on("canvasReady", () => { drawLeave(); refreshMarkers(); });
+  Hooks.on("drawToken", (token) => drawMarker(token));
+  Hooks.on("refreshToken", (token) => drawMarker(token));
   Hooks.on("updateCombat", (combat) => setCombatLock(combatLocId(combat), !!combat.started));
   Hooks.on("deleteCombat", (combat) => setCombatLock(combatLocId(combat), false));
 
@@ -1106,7 +1380,15 @@ Hooks.once("ready", async () => {
     open: openHub,
     close: closeHub,
     /** Escape hatch: shut every overlay this module owns, from the console. */
-    closeAll: () => { closeCard(); closeHub(); leaveRoot().innerHTML = ""; },
+    closeAll: () => { closeCard(); closeHub(); closeDossier(); leaveRoot().innerHTML = ""; },
+    openDossier,
+    questGivers: () => questGiversIn(cityById(getState().currentCityId)),
+    setQuestStage: async (key, stage) => {
+      if (!game.user.isGM) return;
+      await setState({ quests: { ...getState().quests, [key]: stage } });
+      refreshEveryone();
+      refreshLocal();
+    },
     toggle: toggleHub,
     enter: requestEnter,
     leave: requestLeave,

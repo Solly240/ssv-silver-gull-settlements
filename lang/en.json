@@ -11,5 +11,7 @@
   "ssv-silver-gull-settlements.settings.wanderMs.name": "NPC step interval (ms)",
   "ssv-silver-gull-settlements.settings.wanderMs.hint": "How often wandering NPCs take a step. Lower is livelier and chattier on the network.",
   "ssv-silver-gull-settlements.keybind.dismiss.name": "Close the settlement view",
-  "ssv-silver-gull-settlements.keybind.dismiss.hint": "Closes the NPC card, then the settlement view. When neither is open the key is passed straight through to Foundry."
+  "ssv-silver-gull-settlements.keybind.dismiss.hint": "Closes the NPC card, then the settlement view. When neither is open the key is passed straight through to Foundry.",
+  "ssv-silver-gull-settlements.settings.questMarkers.name": "Quest markers over NPCs",
+  "ssv-silver-gull-settlements.settings.questMarkers.hint": "Float a small sigil over people who have a job on offer or one waiting to be handed in. Turn off if you would rather the party had to actually talk to people."
 }

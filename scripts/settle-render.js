@@ -650,8 +650,12 @@
 .sgset-gmloc .nm{font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
 
 /* ---- NPC card ---- */
+/* No backdrop-filter here: this scrim covers the whole viewport and the thing behind it
+   is the live Foundry canvas, which repaints continuously (token animation, lighting, the
+   NPC wander tick). A backdrop blur forces a full-viewport readback + Gaussian blur on
+   every one of those frames. A slightly darker flat scrim reads the same and costs nothing. */
 .sgset-cardwrap{position:fixed;inset:0;z-index:72;display:flex;align-items:center;
-  justify-content:center;background:rgba(2,5,10,.62);backdrop-filter:blur(3px);}
+  justify-content:center;background:rgba(2,5,10,.78);}
 .sgset-card{width:min(560px,92vw);max-height:86vh;overflow-y:auto;background:var(--panel2);
   border:1px solid var(--edge2);border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.7);
   color:var(--ink);font-family:'Courier New',monospace;}
@@ -678,6 +682,44 @@
 .sgset-btn:hover{border-color:var(--teal);color:var(--teal);box-shadow:0 0 16px rgba(56,225,196,.3);}
 .sgset-btn.primary{border-color:var(--teal);color:var(--teal);}
 .sgset-btn.ghost{border-color:var(--edge);color:var(--muted);}
+
+/* ---- player hand-off notice on a quest-giver's card ---- */
+.sgset-handoff{background:rgba(242,176,61,.07);}
+.sgset-handoff-line{font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--amber);display:flex;align-items:center;gap:9px;}
+.sgset-handoff-line::before{content:"◆";font-size:10px;}
+.sgset-handoff .sgset-line{margin-top:8px;}
+
+/* ---- GM quest-giver dossier ---- */
+.sgset-dossier{width:min(680px,94vw);}
+.sgset-dossier .sect h5{color:#c69bec;}
+.sgset-quest{border:1px solid var(--edge);border-radius:10px;background:rgba(6,18,28,.6);
+  padding:10px 12px;margin-bottom:9px;flex:0 0 auto;}
+.sgset-quest.is-ready{border-color:#7a5a27;}
+.sgset-quest.is-complete{opacity:.6;}
+.sgset-quest .qhead{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:6px;}
+.sgset-quest .qname{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);}
+.sgset-quest .qsum{font-size:12px;line-height:1.55;color:var(--ink);}
+.sgset-quest .qopen{margin:8px 0 0;padding:7px 11px;border-left:2px solid var(--amber);
+  background:rgba(242,176,61,.08);font-size:12px;line-height:1.5;color:var(--amber);font-style:italic;}
+.sgset-quest h6{margin:10px 0 5px;font-size:9px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--muted);font-weight:normal;}
+.sgset-quest .qacts{margin-top:10px;}
+.sgset-reward{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.sgset-coin{font-size:13px;color:var(--amber);letter-spacing:.08em;}
+.sgset-reward-item{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink);
+  border:1px solid var(--edge);border-radius:7px;padding:3px 8px;background:rgba(4,14,22,.7);}
+.sgset-reward-item img{width:20px;height:20px;border-radius:4px;object-fit:cover;}
+.sgset-rewardnote{margin-top:6px;font-size:11px;color:var(--muted);line-height:1.5;}
+.sgset-none{font-size:11px;color:var(--muted);font-style:italic;}
+.sgset-stats{font-size:11px;color:var(--teal);letter-spacing:.06em;border:1px solid var(--edge);
+  border-radius:7px;padding:6px 9px;background:rgba(4,14,22,.6);margin-bottom:9px;}
+.sgset-brief{margin:0 0 7px;font-size:12px;line-height:1.55;color:var(--ink);}
+.sgset-brief strong{color:var(--muted);font-weight:normal;letter-spacing:.1em;
+  text-transform:uppercase;font-size:10px;margin-right:5px;}
+.sgset-brief.sgset-muted{color:var(--muted);}
+/* Quest-giver marker in the hub list */
+.sgset-tag.giver{border-color:#7a5a27;color:var(--amber);}
 
 /* ---- leave button (shown while inside an interior) ---- */
 #ssvset-leave{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:60;
@@ -750,6 +792,7 @@
       enterable: discovered && !locked && !shut,
       hasShop: (loc.npcs || []).some((n) => n.shopId),
       hasQuest: !!loc.quest || (loc.npcs || []).some((n) => n.quest),
+      hasWork: (loc.npcs || []).some((n) => (n.quests || []).length),
     };
   }
   SSVSET.annotate = annotate;
@@ -777,6 +820,30 @@
     uiState.activeLoc = null;
   };
 
+  // The haystack the search box matches against, precomputed onto each element so
+  // filtering is a pure DOM pass with no access to the location objects.
+  const searchKey = (l) => `${l.name} ${l.blurb || ""} ${kindOf(l.kind).label}`.toLowerCase();
+
+  /**
+   * Show/hide the location rows and their map hotspots in place. This used to be done by
+   * re-rendering the whole hub on every keystroke, which rebuilt the full-size city art,
+   * every pulsing hotspot and all the event wiring — and then had to restore focus and
+   * caret position by hand, because the input it was typing into had just been destroyed.
+   */
+  function applyLocFilter(root) {
+    const q = uiState.filter.trim().toLowerCase();
+    let n = 0;
+    for (const el of root.querySelectorAll("[data-loc][data-search]")) {
+      const hit = !q || el.dataset.search.includes(q);
+      el.style.display = hit ? "" : "none";
+      if (hit && el.classList.contains("sgset-loc")) n++;
+    }
+    const c = root.querySelector("[data-count]");
+    if (c) c.textContent = String(n);
+    const empty = root.querySelector(".sgset-empty");
+    if (empty) empty.style.display = n ? "none" : "";
+  }
+
   function renderCity(root, ctx) {
     ensureStyles(root.ownerDocument);
     const city = ctx.city;
@@ -802,11 +869,11 @@
     <div class="sgset-frame">
       <img class="sgset-art is-${esc(tod)}" src="${esc(ctx.assetPath ? ctx.assetPath(art) : art)}" alt="">
       <div class="sgset-scrim"></div>
-      ${shown.map((l) => hotspotHtml(l, ctx)).join("")}
+      ${locs.map((l) => hotspotHtml(l, ctx)).join("")}
     </div>` : `
     <div class="sgset-frame" style="width:100%;height:100%">
       <div class="sgset-noart">${esc(city.name)} — no artwork yet</div>
-      ${shown.map((l) => hotspotHtml(l, ctx)).join("")}
+      ${locs.map((l) => hotspotHtml(l, ctx)).join("")}
     </div>`}
     <div class="sgset-head">
       <div>
@@ -828,12 +895,13 @@
   </div>
   <aside class="sgset-side">
     <div class="sgset-sidehead">
-      <h3>Interesting places — ${shown.length}</h3>
+      <h3>Interesting places — <span data-count>${shown.length}</span></h3>
       <input class="sgset-search" data-act="filter" placeholder="Search this settlement…"
              value="${esc(uiState.filter)}">
     </div>
     <div class="sgset-list">
-      ${shown.length ? shown.map((l) => locRowHtml(l, ctx)).join("") : `<div class="sgset-empty">Nothing here matches</div>`}
+      ${locs.map((l) => locRowHtml(l, ctx)).join("")}
+      <div class="sgset-empty"${shown.length ? ' style="display:none"' : ""}>Nothing here matches</div>
     </div>
     <div class="sgset-sidefoot">
       ${partyFootHtml(locs, ctx)}
@@ -841,7 +909,8 @@
   </aside>
 </div>`;
 
-    wireCity(root, ctx, shown);
+    applyLocFilter(root);          // hide the non-matching rows/hotspots we just rendered
+    wireCity(root, ctx, locs);
   }
   SSVSET.renderCity = renderCity;
 
@@ -857,7 +926,7 @@
     ].filter(Boolean).join(" ");
     const reason = blockReason(l);
     return `
-<button class="${cls}" data-act="hot" data-loc="${esc(l.id)}"
+<button class="${cls}" data-act="hot" data-loc="${esc(l.id)}" data-search="${esc(searchKey(l))}"
         style="left:${clamp(l.hotspot.x * 100, 0, 100)}%;top:${clamp(l.hotspot.y * 100, 0, 100)}%"
         title="${esc(l.name)}${reason ? " — " + esc(reason) : ""}">
   <span class="ring">${k.glyph}${l.here.length ? `<span class="here">${l.here.length}</span>` : ""}</span>
@@ -876,7 +945,7 @@
     if (l.gmOnly) tags.push(`<span class="sgset-tag gm">Hidden from players</span>`);
     return `
 <div class="sgset-loc ${l.enterable ? "" : "is-blocked"}" role="button" tabindex="0"
-     data-act="enter" data-loc="${esc(l.id)}">
+     data-act="enter" data-loc="${esc(l.id)}" data-search="${esc(searchKey(l))}">
   <div class="glyph">${k.glyph}</div>
   <div class="body">
     <div class="name">${esc(l.name)}</div>
@@ -937,6 +1006,16 @@
       ${inside.map(([uid]) => `<button class="sgset-mini" data-act="recall" data-user="${esc(uid)}">${esc(userLabel(ctx, uid))}</button>`).join("")}
     </div>
   </div>` : ""}
+  ${(ctx.questGivers?.() || []).length ? `
+  <div class="grp">
+    <label>Quest givers</label>
+    ${(ctx.questGivers() || []).map((g) => `
+      <button class="sgset-mini" style="display:block;width:100%;margin-bottom:5px"
+              data-act="dossier" data-loc="${esc(g.locId)}" data-npc="${esc(g.npcKey)}">
+        ${esc(g.name)} — ${esc(g.locName)}
+        ${g.stages.map((st) => `<span class="sgset-tag ${st === "complete" ? "shop" : st === "ready" ? "quest" : ""}">${esc(st)}</span>`).join("")}
+      </button>`).join("")}
+  </div>` : ""}
   <div class="grp">
     <div class="sgset-row">
       <button class="sgset-mini warn" data-act="rebuildall">Rebuild every scene</button>
@@ -962,12 +1041,11 @@
 
     const search = root.querySelector('[data-act="filter"]');
     if (search) {
+      // Filters in place — the input is never destroyed, so focus and caret look after
+      // themselves and the city art / hotspots / wiring are left untouched.
       search.addEventListener("input", (e) => {
         uiState.filter = e.target.value;
-        const pos = e.target.selectionStart;
-        ctx.refresh();
-        const again = root.querySelector('[data-act="filter"]');
-        if (again) { again.focus(); again.setSelectionRange(pos, pos); }
+        applyLocFilter(root);
       });
     }
 
@@ -999,6 +1077,8 @@
     on('[data-act="rebuildall"]', "click", () => ctx.rebuildAll());
     on('[data-act="syncshops"]', "click", () => ctx.syncShopHours());
     on('[data-act="recall"]', "click", (e) => ctx.recall(e.currentTarget.dataset.user));
+    on('[data-act="dossier"]', "click", (e) =>
+      ctx.openDossier(e.currentTarget.dataset.loc, e.currentTarget.dataset.npc));
   }
 
   /* ------------------------------------------------------------------ *
@@ -1022,6 +1102,12 @@
         ${npc.blurb ? `<div class="blurb">${esc(npc.blurb)}</div>` : ""}
       </div>
     </div>
+    ${npc.quests && npc.quests.length ? `
+    <div class="sect sgset-handoff">
+      <div class="sgset-handoff-line">The GM will play this character.</div>
+      ${(ctx.acceptedTitles ? ctx.acceptedTitles(npc, loc) : []).map((t) =>
+        `<div class="sgset-line"><span class="sgset-tag quest">Job</span><span class="txt">${esc(t)}</span></div>`).join("")}
+    </div>` : ""}
     ${points.length ? `
     <div class="sect">
       <h5>Talking points — GM only</h5>
@@ -1085,6 +1171,182 @@
   }
   SSVSET.renderLeave = renderLeave;
 
+
+
+  /* ------------------------------------------------------------------ *
+   * 8. Quest-giver dossier — GM only
+   * ------------------------------------------------------------------ */
+
+  /* Four stages. The journal only knows hidden / active / complete, so "ready" lives on our
+   * side: it is what lets a giver become the place you hand the job back in. */
+  const STAGES = ["offered", "accepted", "ready", "complete"];
+  SSVSET.STAGES = STAGES;
+  const STAGE_LABEL = {
+    offered: "On offer",
+    accepted: "Accepted",
+    ready: "Ready to hand in",
+    complete: "Done",
+  };
+  const NEXT_STAGE = { offered: "accepted", accepted: "ready", ready: "complete" };
+  const NEXT_LABEL = {
+    offered: "They take the job",
+    accepted: "Mark ready to hand in",
+    ready: "Complete & pay out",
+  };
+
+  /** Stable key for a quest: its journal id, or its position under this giver. */
+  function questKey(loc, npc, quest, i) {
+    return quest.id || `${loc?.id || "?"}:${npc.key}:${i}`;
+  }
+  SSVSET.questKey = questKey;
+
+  const stageOf = (state, key) => state?.quests?.[key] || "offered";
+  SSVSET.stageOf = stageOf;
+
+  /** Quests a giver still has business over — drives the marker over their token. */
+  function pendingQuests(npc, state) {
+    return (npc.quests || []).filter((q, i) => {
+      const st = stageOf(state, questKey(null, npc, q, i));
+      return st === "offered" || st === "ready";
+    });
+  }
+  SSVSET.pendingQuests = pendingQuests;
+
+  function rewardHtml(reward, ctx) {
+    if (!reward) return `<div class="sgset-none">No material reward.</div>`;
+    const bits = [];
+    if (reward.gold) bits.push(`<span class="sgset-coin">${esc(reward.gold)} gp</span>`);
+    if (reward.item) {
+      const item = ctx.itemInfo ? ctx.itemInfo(reward.item) : null;
+      const name = item?.name || reward.item;
+      const qty = reward.qty || 1;
+      bits.push(
+        `<span class="sgset-reward-item">${item?.img
+          ? `<img src="${esc(item.img)}" alt="">` : ""}${esc(name)}${qty > 1 ? ` ×${qty}` : ""}</span>`
+      );
+    }
+    if (reward.standing) {
+      const d = reward.standing.delta;
+      bits.push(`<span class="sgset-tag ${d >= 0 ? "shop" : "locked"}">${esc(reward.standing.faction)} ${d >= 0 ? "+" : ""}${esc(d)}</span>`);
+    }
+    return `
+      <div class="sgset-reward">
+        ${bits.length ? bits.join("") : `<span class="sgset-none">Nothing but goodwill.</span>`}
+      </div>
+      ${reward.note ? `<div class="sgset-rewardnote">${esc(reward.note)}</div>` : ""}`;
+  }
+
+  function questBlockHtml(q, i, key, stage, ctx) {
+    const next = NEXT_STAGE[stage];
+    const journal = q.id ? ctx.journalQuest?.(q.id) : null;
+    return `
+<div class="sgset-quest is-${esc(stage)}" data-key="${esc(key)}" data-i="${i}">
+  <div class="qhead">
+    <span class="qname">${esc(journal?.name || q.title || q.id || "Unnamed job")}</span>
+    <span class="sgset-tag ${stage === "complete" ? "shop" : stage === "ready" ? "quest" : ""}">${esc(STAGE_LABEL[stage])}</span>
+  </div>
+  ${q.summary ? `<div class="qsum">${esc(q.summary)}</div>` : ""}
+  ${q.opening ? `<blockquote class="qopen">${esc(q.opening)}</blockquote>` : ""}
+  <h6>Reward</h6>
+  ${rewardHtml(q.reward, ctx)}
+  <div class="sgset-row qacts">
+    ${next ? `<button class="sgset-btn primary" data-act="advance" data-key="${esc(key)}" data-i="${i}">${esc(NEXT_LABEL[stage])}</button>` : ""}
+    ${q.reward && (q.reward.gold || q.reward.item || q.reward.standing)
+      ? `<button class="sgset-mini" data-act="payout" data-key="${esc(key)}" data-i="${i}">Pay out only</button>` : ""}
+    ${stage !== "offered" ? `<button class="sgset-mini" data-act="back" data-key="${esc(key)}" data-i="${i}">Step back</button>` : ""}
+    ${q.id ? `<button class="sgset-mini" data-act="journal" data-qid="${esc(q.id)}">Open in journal</button>` : ""}
+  </div>
+</div>`;
+  }
+
+  function renderDossier(root, ctx, npc, loc) {
+    ensureStyles(root.ownerDocument);
+    if (!npc) { root.innerHTML = ""; return; }
+    const d = npc.dossier || {};
+    const src = npc.portrait ? (ctx.assetPath ? ctx.assetPath(npc.portrait) : npc.portrait) : null;
+    const quests = npc.quests || [];
+    const state = ctx.state || {};
+
+    const grouped = STAGES.map((stage) => ({
+      stage,
+      items: quests
+        .map((q, i) => ({ q, i, key: questKey(loc, npc, q, i) }))
+        .filter((x) => stageOf(state, x.key) === stage),
+    })).filter((g) => g.items.length);
+
+    root.innerHTML = `
+<div class="sgset-cardwrap" data-act="scrim">
+  <div class="sgset-card sgset-dossier">
+    <div class="top">
+      ${src ? `<img class="port" src="${esc(src)}" alt="">` : `<div class="portfallback">☺</div>`}
+      <div>
+        <h3>${esc(npc.name || "Someone")}</h3>
+        ${npc.role ? `<div class="role">${esc(npc.role)}${loc ? ` · ${esc(loc.name)}` : ""}</div>` : ""}
+        <div class="sgset-tags">
+          ${d.race ? `<span class="sgset-tag">${esc(d.race)}</span>` : ""}
+          ${d.age ? `<span class="sgset-tag">${esc(d.age)}</span>` : ""}
+          <span class="sgset-tag gm">GM brief</span>
+        </div>
+      </div>
+    </div>
+
+    ${grouped.length ? grouped.map((g) => `
+      <div class="sect">
+        <h5>${esc(STAGE_LABEL[g.stage])}</h5>
+        ${g.items.map((x) => questBlockHtml(x.q, x.i, x.key, g.stage, ctx)).join("")}
+      </div>`).join("") : `<div class="sect"><div class="sgset-none">No jobs on offer.</div></div>`}
+
+    <div class="sect">
+      <h5>Playing them</h5>
+      ${d.stats ? `<div class="sgset-stats">${esc(d.stats)}</div>` : ""}
+      ${d.look ? `<p class="sgset-brief"><strong>Looks like</strong> ${esc(d.look)}</p>` : ""}
+      ${d.personality ? `<p class="sgset-brief"><strong>Is</strong> ${esc(d.personality)}</p>` : ""}
+      ${d.voice ? `<p class="sgset-brief"><strong>Sounds like</strong> ${esc(d.voice)}</p>` : ""}
+      ${npc.blurb ? `<p class="sgset-brief sgset-muted">${esc(npc.blurb)}</p>` : ""}
+    </div>
+
+    ${(npc.talkingPoints || []).length || (npc.rumours || []).length ? `
+    <div class="sect">
+      <h5>Lines to drop</h5>
+      ${(npc.talkingPoints || []).concat(npc.rumours || []).map((t, i) => `
+        <div class="sgset-line">
+          <button class="sgset-mini" data-act="say" data-i="${i}">Say</button>
+          <span class="txt">${esc(t)}</span>
+        </div>`).join("")}
+    </div>` : ""}
+
+    <div class="acts">
+      ${npc.shopId ? `<button class="sgset-btn" data-act="shop">Open their shop</button>` : ""}
+      ${(npc.dossier?.actor || npc.actor) ? `<button class="sgset-btn" data-act="sheet">Open sheet</button>` : ""}
+      <div style="flex:1 1 auto"></div>
+      <button class="sgset-btn ghost" data-act="close">Close</button>
+    </div>
+  </div>
+</div>`;
+
+    const on = (sel, fn) => root.querySelectorAll(sel).forEach((el) => el.addEventListener("click", fn));
+    const qOf = (el) => (npc.quests || [])[Number(el.dataset.i)];
+
+    root.querySelector('[data-act="close"]')?.addEventListener("click", () => ctx.closeDossier());
+    root.querySelector('[data-act="scrim"]')?.addEventListener("click", (e) => {
+      if (e.target === e.currentTarget) ctx.closeDossier();
+    });
+    on('[data-act="advance"]', (e) => {
+      const key = e.currentTarget.dataset.key;
+      ctx.advanceQuest(key, qOf(e.currentTarget), npc, loc);
+    });
+    on('[data-act="back"]', (e) => ctx.stepQuestBack(e.currentTarget.dataset.key, qOf(e.currentTarget)));
+    on('[data-act="payout"]', (e) => ctx.payout(qOf(e.currentTarget), npc));
+    on('[data-act="journal"]', (e) => ctx.openJournalQuest(e.currentTarget.dataset.qid));
+    on('[data-act="shop"]', () => ctx.openShop(npc.shopId, npc));
+    on('[data-act="sheet"]', () => ctx.openSheet(npc));
+    on('[data-act="say"]', (e) => {
+      const list = (npc.talkingPoints || []).concat(npc.rumours || []);
+      const line = list[Number(e.currentTarget.dataset.i)];
+      if (line) ctx.say(npc, line);
+    });
+  }
+  SSVSET.renderDossier = renderDossier;
 
 
   /* ------------------------------------------------------------------ *
