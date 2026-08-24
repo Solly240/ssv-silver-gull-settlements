@@ -2,14 +2,14 @@
 
 Cities and towns for Foundry VTT, built for the *SSV Silver Gull* campaign.
 
-Press **C** and you are standing in the settlement: its artwork fills the screen, the
+Press **G** and you are standing in the settlement: its artwork fills the screen, the
 interesting places are marked on it, and the side panel lists them with what is worth
 knowing. Click one and you walk in — a real scene with walls, doors, lights and people
 moving about in it. Walk back out through the door and you are in the settlement view
 again.
 
 **For players**
-- **C** — open the settlement view.
+- **G** — open the settlement view.
 - Click a place on the picture, or in the list, to go inside.
 - Click a person to talk to them. Shopkeepers have a **Browse wares** button.
 - To leave, walk back out through the door you came in by, or use the **Back out** button

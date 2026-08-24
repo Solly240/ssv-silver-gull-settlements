@@ -1,13 +1,13 @@
 {
   "id": "ssv-silver-gull-settlements",
   "title": "SSV Silver Gull — Settlements",
-  "description": "City and town hubs: a full-screen view of the settlement with clickable interesting locations. Walk into a building and you land in a real battlemap with walls, lights and wandering NPCs; walk back out the door and you return to the hub. Interiors are generated from authored floorplans. Click a shopkeeper to trade. Press C to open the settlement view.",
+  "description": "City and town hubs: a full-screen view of the settlement with clickable interesting locations. Walk into a building and you land in a real battlemap with walls, lights and wandering NPCs; walk back out the door and you return to the hub. Interiors are generated from authored floorplans. Click a shopkeeper to trade. Press G to open the settlement view.",
   "authors": [
     {
       "name": "Solly240"
     }
   ],
-  "version": "0.4.0",
+  "version": "0.4.1",
   "compatibility": {
     "minimum": "12",
     "verified": "14"

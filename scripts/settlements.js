@@ -65,6 +65,7 @@ const _buildState = () => {
     whereIs: raw.whereIs ?? {},
     sceneKeys: raw.sceneKeys ?? {},
     quests: raw.quests ?? {},
+    paidOut: raw.paidOut ?? {},
   };
 };
 
@@ -164,7 +165,7 @@ function buildCtx() {
     closeDossier,
     advanceQuest: (key, quest, npc, loc) => gmAdvanceQuest(key, quest, npc, loc?.id),
     stepQuestBack: (key) => gmStepQuestBack(key),
-    payout: (quest, npc) => payoutQuest(quest, npc),
+    payout: (quest, npc, key) => payoutQuest(quest, npc, key),
     journalQuest: (id) => { try { return journalApi()?.getQuest?.(id) || null; } catch (e) { return null; } },
     openJournalQuest: (id) => {
       const api = journalApi();
@@ -561,6 +562,9 @@ async function buildScene(cityId, locId, { rebuild = false } = {}) {
       size: geo.gridSize,
     },
     tokenVision: loc.interior.tokenVision ?? true,
+    // Players need at least OBSERVER to call scene.view() on a scene that is not the active
+    // one. Without this, walking into a building silently failed for everyone but the GM.
+    ownership: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS?.OBSERVER ?? 2 },
     // No exploration fog. These are shops and habs, not a dungeon to map out — and every
     // wall change resets fog, so the GM was left staring at a fully unexplored grey map
     // after each rebuild. Token vision still limits what players see live.
@@ -732,7 +736,10 @@ async function gmEnter(userId, locId) {
   const { city, loc } = findLoc(locId);
   if (!city || !loc) return;
   const scene = await ensureScene(city.id, locId);
-  if (!scene) return ui.notifications?.warn(`${loc.name} has no floorplan yet.`);
+  if (!scene) {
+    console.error(`${MODULE_ID} | could not build a scene for ${locId}`);
+    return ui.notifications?.error(`${loc.name} could not be opened — see the console.`);
+  }
 
   const user = game.users.get(userId);
   const actor = user ? actorForUser(user) : null;
@@ -741,7 +748,11 @@ async function gmEnter(userId, locId) {
 
   if (actor && spawn) {
     const existing = scene.tokens.find((t) => t.actorId === actor.id);
-    const pos = { x: spawn.col * g, y: spawn.row * g };
+    // Analysed maps carry a precise point; a token's x/y is its top-left, the point is a
+    // centre. Snapping to `col * g` threw that away and could land the party in a wall.
+    const pos = spawn.x != null
+      ? { x: Math.round(spawn.x - g / 2), y: Math.round(spawn.y - g / 2) }
+      : { x: spawn.col * g, y: spawn.row * g };
     if (existing) await existing.update(pos);
     else {
       const data = (await actor.getTokenDocument({ ...pos, actorLink: true })).toObject();
@@ -757,6 +768,7 @@ async function gmEnter(userId, locId) {
   emit({ toUser: userId, type: "view", sceneId: scene.id });
   if (userId === game.user.id) viewScene(scene.id);
   refreshEveryone();
+  refreshLocal();
 }
 
 async function gmLeave(userId) {
@@ -776,6 +788,7 @@ async function gmLeave(userId) {
   emit({ toUser: userId, type: "hub" });
   if (userId === game.user.id) openHub();
   refreshEveryone();
+  refreshLocal();
 }
 
 function viewScene(sceneId) {
@@ -1134,7 +1147,7 @@ async function gmAdvanceQuest(key, quest, npc, locId) {
     ChatMessage.create({ content: `<p><em>${npc?.name || "Someone"} gives the crew a job: <strong>${name}</strong>.</em></p>` });
   }
   if (to === "complete") {
-    await payoutQuest(quest, npc);
+    await payoutQuest(quest, npc, key);
     ChatMessage.create({ content: `<p><em><strong>${name}</strong> — settled up with ${npc?.name || "someone"}.</em></p>` });
   }
   refreshEveryone();
@@ -1156,10 +1169,27 @@ async function gmStepQuestBack(key) {
  * Hand over a reward. Every step is optional and degrades to a note if that module is off,
  * so a missing sibling never blocks the rest of the payout.
  */
-async function payoutQuest(quest, npc) {
+/**
+ * Hand over a reward, once.
+ *
+ * "Pay out only" and "Complete & pay out" both land here, so without a record the GM can
+ * easily pay the same job twice — and this moves real money and real items. A second
+ * payout has to be confirmed explicitly.
+ */
+async function payoutQuest(quest, npc, key) {
   if (!game.user.isGM) return;
   const reward = quest?.reward;
   if (!reward) return;
+
+  const payKey = key || quest?.id;
+  if (payKey) {
+    const paid = getState().paidOut || {};
+    if (paid[payKey]) {
+      const again = await confirmDialog(
+        `${quest.id || "This job"} has already been paid out. Pay it again?`);
+      if (!again) return;
+    }
+  }
   const shop = game.modules.get(SHOP_ID)?.api;
   const done = [];
 
@@ -1189,6 +1219,7 @@ async function payoutQuest(quest, npc) {
   }
 
   if (done.length) {
+    if (payKey) await setState({ paidOut: { ...(getState().paidOut || {}), [payKey]: Date.now() } });
     ChatMessage.create({ content: `<p><strong>Paid out:</strong> ${done.join(" · ")}</p>` });
     ui.notifications?.info(`Paid out: ${done.join(", ")}`);
   }

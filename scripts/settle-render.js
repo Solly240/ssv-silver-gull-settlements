@@ -961,7 +961,7 @@
     const reason = blockReason(l);
     const tags = [];
     if (l.hasShop) tags.push(`<span class="sgset-tag shop">Trade</span>`);
-    if (l.hasQuest) tags.push(`<span class="sgset-tag quest">Business here</span>`);
+    if (l.hasQuest || l.hasWork) tags.push(`<span class="sgset-tag quest">Business here</span>`);
     if (l.shut) tags.push(`<span class="sgset-tag shut">${esc(reason)}</span>`);
     if (l.locked) tags.push(`<span class="sgset-tag locked">${esc(reason)}</span>`);
     if (l.gmOnly) tags.push(`<span class="sgset-tag gm">Hidden from players</span>`);
@@ -1358,7 +1358,7 @@
       ctx.advanceQuest(key, qOf(e.currentTarget), npc, loc);
     });
     on('[data-act="back"]', (e) => ctx.stepQuestBack(e.currentTarget.dataset.key, qOf(e.currentTarget)));
-    on('[data-act="payout"]', (e) => ctx.payout(qOf(e.currentTarget), npc));
+    on('[data-act="payout"]', (e) => ctx.payout(qOf(e.currentTarget), npc, e.currentTarget.dataset.key));
     on('[data-act="journal"]', (e) => ctx.openJournalQuest(e.currentTarget.dataset.qid));
     on('[data-act="shop"]', () => ctx.openShop(npc.shopId, npc));
     on('[data-act="sheet"]', () => ctx.openSheet(npc));

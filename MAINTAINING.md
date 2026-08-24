@@ -78,6 +78,14 @@ fully unexplored grey map and reasonably concluded the art was broken. `fog.mode
 `DISABLED`; token vision still limits what players see live. Override per interior with
 `"fog": 1`.
 
+**Scenes are created with `ownership: OBSERVER`.** A player needs at least that to call
+`scene.view()` on a scene which is not the active one — without it, walking into a building
+silently did nothing for everyone except the GM.
+
+**A reward can only be paid once without confirming.** *Pay out only* and *Complete & pay
+out* both reach `payoutQuest`, so `state.paidOut` records what has been settled and a second
+payout has to be confirmed. This moves real money and real items.
+
 **The keybinding is G, not C.** Foundry binds *Toggle Character Sheet* to plain C at
 PRIORITY precedence. A player with an assigned character has core's handler consume the key
 before ours runs — so the settlement view opened for the GM (no assigned character, so core
