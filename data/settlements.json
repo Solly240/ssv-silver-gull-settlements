@@ -94,7 +94,7 @@
      "interior": {
       "gridSize": 64,
       "img": "assets/interiors/frostwatch-the-frostwatch-tab.webp",
-      "darkness": 0.42,
+      "darkness": 0,
       "artSubject": "a frontier cantina on a frozen ice moon",
       "geometry": {
        "size": [
@@ -489,7 +489,7 @@
      "interior": {
       "gridSize": 64,
       "img": "assets/interiors/frostwatch-the-trade-post.webp",
-      "darkness": 0.22,
+      "darkness": 0,
       "artSubject": "a frontier trading post on a frozen ice moon",
       "geometry": {
        "size": [
@@ -939,7 +939,7 @@
      "interior": {
       "gridSize": 64,
       "img": "assets/interiors/frostwatch-the-bonefield.webp",
-      "darkness": 0.2,
+      "darkness": 0,
       "artSubject": "a fenced salvage yard of frozen ship wreckage, open to the sky",
       "geometry": {
        "size": [
@@ -1288,7 +1288,7 @@
      "interior": {
       "gridSize": 64,
       "img": "assets/interiors/frostwatch-administrators-hab.webp",
-      "darkness": 0.22,
+      "darkness": 0,
       "artSubject": "the administrative hab of a frontier outpost",
       "geometry": {
        "size": [
@@ -1718,7 +1718,7 @@
      "interior": {
       "gridSize": 64,
       "img": "assets/interiors/frostwatch-the-warmroom.webp",
-      "darkness": 0.12,
+      "darkness": 0,
       "artSubject": "a small frontier medical bay",
       "geometry": {
        "size": [
@@ -2288,7 +2288,7 @@
      "interior": {
       "gridSize": 64,
       "img": "assets/interiors/frostwatch-pad-three.webp",
-      "darkness": 0.15,
+      "darkness": 0,
       "artSubject": "a starship landing pad cut into ice, open to the sky",
       "geometry": {
        "size": [
@@ -2526,6 +2526,7 @@
       "gridSize": 64,
       "img": "assets/interiors/frostwatch-the-back-shed.webp",
       "darkness": 0.6,
+      "globalLight": false,
       "artSubject": "a hidden smuggler's back room behind a salvage yard",
       "geometry": {
        "size": [

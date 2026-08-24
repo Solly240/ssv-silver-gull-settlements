@@ -581,12 +581,18 @@ async function buildScene(cityId, locId, { rebuild = false } = {}) {
       },
     },
   };
-  // Darkness moved from `darkness` to `environment.darknessLevel` at v13. Send whichever
-  // the running version actually declares, rather than both.
-  const level = Number(loc.interior.darkness ?? 0.55);
+  /* Lighting.
+   *
+   * Settlement interiors are lit by default: the maps are drawn already lit, and a shop you
+   * walk into to talk to someone should not need a torch. Walls still block movement and
+   * line of sight, and the ambient lights still add warmth — but nothing is hidden behind
+   * darkness the artwork does not have. Opt a location into a dark scene with
+   * `"globalLight": false` and a `darkness` level, which is what the Back Shed wants. */
+  const lit = loc.interior.globalLight ?? true;
+  const level = Number(loc.interior.darkness ?? (lit ? 0 : 0.55));
   const darkness = "environment" in (Scene.implementation ?? Scene).schema.fields
-    ? { environment: { darknessLevel: level } }
-    : { darkness: level };
+    ? { environment: { darknessLevel: level, globalLight: { enabled: lit } } }
+    : { darkness: level, globalLight: lit };
 
   if (!scene) {
     scene = await Scene.create({ ...core, ...darkness, navigation: false });
