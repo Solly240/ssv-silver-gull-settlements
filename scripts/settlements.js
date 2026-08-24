@@ -1427,6 +1427,37 @@ async function setCombatLock(locId, should) {
 
 const combatLocId = (combat) => combat?.scene?.getFlag?.(MODULE_ID, "locId") || null;
 
+/**
+ * Say so if something claims our keys ahead of us.
+ *
+ * A binding at a lower precedence number wins, and its handler can swallow the key without
+ * any error — the module simply appears not to respond, and only for the users whose state
+ * makes that other handler fire. Worth a console line rather than a mystery.
+ */
+function warnAboutKeyConflicts() {
+  try {
+    const ours = ["open", "dismiss"].map((k) => `${MODULE_ID}.${k}`);
+    for (const id of ours) {
+      const mine = game.keybindings.actions.get(id);
+      const myKeys = (game.keybindings.bindings?.get(id) || mine?.editable || [])
+        .filter((b) => !b.modifiers?.length).map((b) => b.key);
+      if (!myKeys.length) continue;
+      for (const [otherId, other] of game.keybindings.actions) {
+        if (otherId === id) continue;
+        if ((other.precedence ?? 1) >= (mine.precedence ?? 1)) continue;
+        const keys = (game.keybindings.bindings?.get(otherId) || other.editable || [])
+          .filter((b) => !b.modifiers?.length).map((b) => b.key);
+        for (const k of keys) {
+          if (myKeys.includes(k)) {
+            console.warn(`${MODULE_ID} | "${otherId}" also binds ${k} at a higher precedence ` +
+                         `and may swallow it. Rebind one of them in Configure Controls.`);
+          }
+        }
+      }
+    }
+  } catch (e) { /* a diagnostic must never break startup */ }
+}
+
 /* ------------------------------------------------------------------ *
  * Init / ready
  * ------------------------------------------------------------------ */
@@ -1473,10 +1504,16 @@ Hooks.once("init", () => {
     },
   });
 
+  /* G, not C.
+   *
+   * Foundry binds "Toggle Character Sheet" to plain C at PRIORITY precedence. A player with
+   * an assigned character has that handler consume the key before ours ever runs — so the
+   * settlement view opened for the GM (no assigned character, so core fell through) and did
+   * nothing for everyone else. Rebindable in Configure Controls as usual. */
   game.keybindings.register(MODULE_ID, "open", {
     name: game.i18n.localize(`${MODULE_ID}.keybind.open.name`),
     hint: game.i18n.localize(`${MODULE_ID}.keybind.open.hint`),
-    editable: [{ key: "KeyC" }],
+    editable: [{ key: "KeyG" }],
     onDown: () => { toggleHub(); return true; },
   });
 });
@@ -1526,6 +1563,8 @@ Hooks.once("ready", async () => {
       console.log(`${MODULE_ID} | stale scenes:`, stale.map((x) => x.scene.name));
     }
   }
+
+  warnAboutKeyConflicts();
 
   game.socket.on(SOCKET, onSocket);
   patchTokenClick();

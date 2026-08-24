@@ -78,6 +78,28 @@ fully unexplored grey map and reasonably concluded the art was broken. `fog.mode
 `DISABLED`; token vision still limits what players see live. Override per interior with
 `"fog": 1`.
 
+**The keybinding is G, not C.** Foundry binds *Toggle Character Sheet* to plain C at
+PRIORITY precedence. A player with an assigned character has core's handler consume the key
+before ours runs — so the settlement view opened for the GM (no assigned character, so core
+fell through) and silently did nothing for every player. `warnAboutKeyConflicts()` now logs
+when anything claims one of our keys at a higher precedence, because the failure is
+invisible otherwise: no error, and only for some users.
+
+### Doorways, and proving every room is reachable
+
+`traced_walls.OPENINGS` lists the doorways cut into each traced wall, and
+`wallcut.cut()` removes that stretch of wall and returns a door segment in its place.
+**A door document laid over an intact wall leaves the room sealed** and there is no way to
+see that by looking at the map — which is why `traced_walls.ROOMS` names a point inside every
+room and `build_settlements.py` floods from the spawn and fails if any of them is
+unreachable. It caught three sealed rooms in the Tab the first time it ran.
+
+Doors count as passable for that check: a closed door is something a player can open.
+
+Where the art clearly draws a doorway the opening sits on it. This map style often leaves
+interior doorways implied rather than drawn, so the rest are placed at a sensible point on
+their divider — the guarantee being made is connectivity, not that every opening is painted.
+
 ### Walls for the Frostwatch maps are hand-traced
 
 `tools/traced_walls.py` holds the architecture for all seven interiors, read by eye off the

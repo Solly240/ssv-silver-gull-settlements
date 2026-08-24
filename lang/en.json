@@ -1,7 +1,7 @@
 {
   "ssv-silver-gull-settlements.control": "Settlement view",
   "ssv-silver-gull-settlements.keybind.open.name": "Open the settlement view",
-  "ssv-silver-gull-settlements.keybind.open.hint": "Show the town or city the crew are standing in, and the interesting places they can walk into.",
+  "ssv-silver-gull-settlements.keybind.open.hint": "Show the town or city the crew are standing in, and the interesting places they can walk into. Defaults to G; C is taken by Foundry's character sheet.",
   "ssv-silver-gull-settlements.settings.wander.name": "Wandering NPCs",
   "ssv-silver-gull-settlements.settings.wander.hint": "Background NPCs drift around inside settlement interiors. Pauses automatically during combat and when nobody is looking at the scene.",
   "ssv-silver-gull-settlements.settings.chatter.name": "Idle chatter",
