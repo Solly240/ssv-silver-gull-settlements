@@ -78,6 +78,11 @@ fully unexplored grey map and reasonably concluded the art was broken. `fog.mode
 `DISABLED`; token vision still limits what players see live. Override per interior with
 `"fog": 1`.
 
+**A GM has to be connected.** Players cannot write scenes or settings, so entering a
+building, leaving one and minting a missing shop all route through the active GM. With none
+online the request vanishes into the socket and the click looks broken — `needGM()` says so
+instead.
+
 **Scenes are created with `ownership: OBSERVER`.** A player needs at least that to call
 `scene.view()` on a scene which is not the active one — without it, walking into a building
 silently did nothing for everyone except the GM.

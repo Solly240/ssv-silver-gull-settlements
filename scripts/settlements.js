@@ -311,6 +311,7 @@ async function openShopFor(shopId, npc) {
       const { loc } = findLoc(npc?.locId ?? canvas?.scene?.getFlag(MODULE_ID, "locId"));
       await ensureShopsFor(loc || { npcs: npc ? [npc] : [] });
     } else {
+      if (needGM()) return;
       // Ask the GM to mint it, then try again once they have.
       emit({ toGM: true, type: "ensureShop", shopId, locId: canvas?.scene?.getFlag(MODULE_ID, "locId") });
       await new Promise((r) => setTimeout(r, 600));
@@ -716,13 +717,24 @@ async function gmRebuildAll() {
  * Entering and leaving
  * ------------------------------------------------------------------ */
 
+/** Players cannot write scenes or settings, so every action goes to the active GM. */
+const noGM = () => !game.users.activeGM;
+
+function needGM() {
+  if (!noGM()) return false;
+  ui.notifications?.warn("No GM is connected — the settlement view needs one to open doors.");
+  return true;
+}
+
 function requestEnter(locId) {
   if (game.user.isGM) return gmEnter(game.user.id, locId);
+  if (needGM()) return;
   emit({ toGM: true, type: "enter", userId: game.user.id, locId });
 }
 
 function requestLeave() {
   if (game.user.isGM) return gmLeave(game.user.id);
+  if (needGM()) return;
   emit({ toGM: true, type: "leave", userId: game.user.id });
 }
 
