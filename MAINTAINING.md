@@ -72,6 +72,35 @@ python3 tools/build_settlements.py
 node tools/check_geometry.js
 ```
 
+### Walls are traced as closed regions, not detected as lines
+
+`detect_map_walls()` line-detects the long runs, rasterises **those** into a coarse grid,
+floods from the edge of the map to find the inside, and traces the boundary of it. The
+result is closed by construction.
+
+This matters more than accuracy. Line detection alone left 88-100% of wall endpoints not
+meeting anything, and in Foundry **every gap is a shaft of light and a line of sight** —
+which is what hard white wedges cutting across a map are. Snapping and over-extending the
+runs barely helped, because the detector genuinely misses corners and stubs.
+
+Two details that are easy to get wrong:
+
+- **Build the grid from the detected lines, not from raw ink.** Long straight runs are
+  architecture; furniture and floor detail are short closed outlines. Tracing raw ink wraps
+  a boundary around every desk and panel — 696 walls on the admin hab, and a room you cannot
+  walk across.
+- **Doors must be passed in and sealed before the flood.** A drawn doorway is a real opening,
+  so otherwise the flood walks in the front door and finds no interior at all. Boundary
+  segments lying across a door are dropped afterwards, or the door would be walled shut
+  behind its own leaf.
+
+`min_len`, `thicken` and `cell` need sweeping per map — see `/tmp` recipes in `adopt_map.py`
+usage. An open map with no enclosure (a landing pad under the sky) correctly falls back to
+joined lines; the tool says which mode it used.
+
+The traced boundary sits a fraction of a square inside the painted wall. Walls are invisible
+to players, so this does not show.
+
 `analyze_map.py` keys on linework: pixels markedly darker than their surroundings, gathered
 into long straight runs. Absolute darkness is useless — a night interior is dark everywhere
 and a plain threshold floods the map. Runs shorter than about a square and a half are
