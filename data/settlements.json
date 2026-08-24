@@ -94,7 +94,7 @@
      "interior": {
       "gridSize": 64,
       "img": "assets/interiors/frostwatch-the-frostwatch-tab.webp",
-      "darkness": 0.6,
+      "darkness": 0.42,
       "artSubject": "a frontier cantina on a frozen ice moon",
       "geometry": {
        "size": [
@@ -285,26 +285,26 @@
        ],
        "lights": [
         {
-         "dim": 32,
-         "bright": 14,
+         "dim": 30,
+         "bright": 7,
          "color": "#ffb066",
-         "alpha": 0.35,
+         "alpha": 0.16,
          "x": 592,
          "y": 154
         },
         {
-         "dim": 32,
-         "bright": 14,
+         "dim": 30,
+         "bright": 7,
          "color": "#ffb066",
-         "alpha": 0.35,
+         "alpha": 0.16,
          "x": 594,
          "y": 151
         },
         {
-         "dim": 32,
-         "bright": 14,
+         "dim": 30,
+         "bright": 7,
          "color": "#ffb066",
-         "alpha": 0.35,
+         "alpha": 0.16,
          "x": 782,
          "y": 154
         }
@@ -489,7 +489,7 @@
      "interior": {
       "gridSize": 64,
       "img": "assets/interiors/frostwatch-the-trade-post.webp",
-      "darkness": 0.35,
+      "darkness": 0.22,
       "artSubject": "a frontier trading post on a frozen ice moon",
       "geometry": {
        "size": [
@@ -794,26 +794,26 @@
        ],
        "lights": [
         {
-         "dim": 40,
-         "bright": 20,
+         "dim": 36,
+         "bright": 8,
          "color": "#dbeeff",
-         "alpha": 0.28,
+         "alpha": 0.11,
          "x": 430,
          "y": 300
         },
         {
-         "dim": 40,
-         "bright": 20,
+         "dim": 36,
+         "bright": 8,
          "color": "#dbeeff",
-         "alpha": 0.28,
+         "alpha": 0.11,
          "x": 430,
          "y": 800
         },
         {
-         "dim": 30,
-         "bright": 12,
+         "dim": 28,
+         "bright": 6,
          "color": "#ffb066",
-         "alpha": 0.34,
+         "alpha": 0.13,
          "x": 1000,
          "y": 600
         }
@@ -939,7 +939,7 @@
      "interior": {
       "gridSize": 64,
       "img": "assets/interiors/frostwatch-the-bonefield.webp",
-      "darkness": 0.3,
+      "darkness": 0.2,
       "artSubject": "a fenced salvage yard of frozen ship wreckage, open to the sky",
       "geometry": {
        "size": [
@@ -1118,34 +1118,34 @@
        ],
        "lights": [
         {
-         "dim": 65,
-         "bright": 28,
+         "dim": 60,
+         "bright": 14,
          "color": "#ffd9a0",
-         "alpha": 0.3,
+         "alpha": 0.14,
          "x": 205,
          "y": 120
         },
         {
-         "dim": 65,
-         "bright": 28,
+         "dim": 60,
+         "bright": 14,
          "color": "#ffd9a0",
-         "alpha": 0.3,
+         "alpha": 0.14,
          "x": 1340,
          "y": 120
         },
         {
-         "dim": 65,
-         "bright": 28,
+         "dim": 60,
+         "bright": 14,
          "color": "#ffd9a0",
-         "alpha": 0.3,
+         "alpha": 0.14,
          "x": 1345,
          "y": 845
         },
         {
-         "dim": 30,
-         "bright": 12,
+         "dim": 28,
+         "bright": 6,
          "color": "#ffb066",
-         "alpha": 0.34,
+         "alpha": 0.13,
          "x": 872,
          "y": 275
         }
@@ -1288,7 +1288,7 @@
      "interior": {
       "gridSize": 64,
       "img": "assets/interiors/frostwatch-administrators-hab.webp",
-      "darkness": 0.35,
+      "darkness": 0.22,
       "artSubject": "the administrative hab of a frontier outpost",
       "geometry": {
        "size": [
@@ -1563,34 +1563,34 @@
        ],
        "lights": [
         {
-         "dim": 30,
-         "bright": 12,
+         "dim": 28,
+         "bright": 6,
          "color": "#ffb066",
-         "alpha": 0.34,
+         "alpha": 0.13,
          "x": 815,
          "y": 400
         },
         {
-         "dim": 40,
-         "bright": 20,
+         "dim": 36,
+         "bright": 8,
          "color": "#dbeeff",
-         "alpha": 0.28,
+         "alpha": 0.11,
          "x": 660,
          "y": 640
         },
         {
-         "dim": 40,
-         "bright": 20,
+         "dim": 36,
+         "bright": 8,
          "color": "#dbeeff",
-         "alpha": 0.28,
+         "alpha": 0.11,
          "x": 1180,
          "y": 640
         },
         {
-         "dim": 40,
-         "bright": 20,
+         "dim": 36,
+         "bright": 8,
          "color": "#dbeeff",
-         "alpha": 0.28,
+         "alpha": 0.11,
          "x": 420,
          "y": 300
         }
@@ -1718,7 +1718,7 @@
      "interior": {
       "gridSize": 64,
       "img": "assets/interiors/frostwatch-the-warmroom.webp",
-      "darkness": 0.2,
+      "darkness": 0.12,
       "artSubject": "a small frontier medical bay",
       "geometry": {
        "size": [
@@ -2167,34 +2167,34 @@
        ],
        "lights": [
         {
-         "dim": 40,
-         "bright": 20,
+         "dim": 36,
+         "bright": 8,
          "color": "#dbeeff",
-         "alpha": 0.28,
+         "alpha": 0.11,
          "x": 480,
          "y": 300
         },
         {
-         "dim": 40,
-         "bright": 20,
+         "dim": 36,
+         "bright": 8,
          "color": "#dbeeff",
-         "alpha": 0.28,
+         "alpha": 0.11,
          "x": 1080,
          "y": 300
         },
         {
-         "dim": 40,
-         "bright": 20,
+         "dim": 36,
+         "bright": 8,
          "color": "#dbeeff",
-         "alpha": 0.28,
+         "alpha": 0.11,
          "x": 480,
          "y": 780
         },
         {
-         "dim": 30,
-         "bright": 12,
+         "dim": 28,
+         "bright": 6,
          "color": "#ffb066",
-         "alpha": 0.34,
+         "alpha": 0.13,
          "x": 1205,
          "y": 660
         }
@@ -2401,26 +2401,26 @@
        ],
        "lights": [
         {
-         "dim": 65,
-         "bright": 28,
+         "dim": 60,
+         "bright": 14,
          "color": "#ffd9a0",
-         "alpha": 0.3,
+         "alpha": 0.14,
          "x": 420,
          "y": 140
         },
         {
-         "dim": 65,
-         "bright": 28,
+         "dim": 60,
+         "bright": 14,
          "color": "#ffd9a0",
-         "alpha": 0.3,
+         "alpha": 0.14,
          "x": 315,
          "y": 640
         },
         {
-         "dim": 65,
-         "bright": 28,
+         "dim": 60,
+         "bright": 14,
          "color": "#ffd9a0",
-         "alpha": 0.3,
+         "alpha": 0.14,
          "x": 1215,
          "y": 790
         }
@@ -2525,7 +2525,7 @@
      "interior": {
       "gridSize": 64,
       "img": "assets/interiors/frostwatch-the-back-shed.webp",
-      "darkness": 0.8,
+      "darkness": 0.6,
       "artSubject": "a hidden smuggler's back room behind a salvage yard",
       "geometry": {
        "size": [
@@ -2646,18 +2646,18 @@
         {
          "x": 962,
          "y": 158,
-         "dim": 26,
-         "bright": 10,
+         "dim": 24,
+         "bright": 6,
          "color": "#ffb066",
-         "alpha": 0.4
+         "alpha": 0.22
         },
         {
          "x": 430,
          "y": 500,
-         "dim": 16,
-         "bright": 5,
+         "dim": 14,
+         "bright": 3,
          "color": "#ffb066",
-         "alpha": 0.3
+         "alpha": 0.18
         }
        ],
        "doors": [
