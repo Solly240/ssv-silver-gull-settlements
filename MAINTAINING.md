@@ -78,7 +78,32 @@ fully unexplored grey map and reasonably concluded the art was broken. `fog.mode
 `DISABLED`; token vision still limits what players see live. Override per interior with
 `"fog": 1`.
 
-### Walls are traced as closed regions, not detected as lines
+### Walls for the Frostwatch maps are hand-traced
+
+`tools/traced_walls.py` holds the architecture for all seven interiors, read by eye off the
+labelled 64px grid overlays. `adopt_map` uses a traced set wherever one exists and only falls
+back to detection otherwise.
+
+**Detection was never going to be exact here.** It keys on linework, and in this art style
+furniture is drawn with the same ink as bulkheads — so the traced boundary hugged booths and
+counters and sat inside the painted walls. Filtering by stroke thickness does not help either:
+the ink mask finds *edges*, so a thick bulkhead reads as two thin lines, and an opening
+deletes everything. Seventy-four hand-traced segments beat three hundred detected ones.
+
+To trace a new map:
+
+```python
+analyze_map.review_overlay(img, [], [], grid=64).save("/tmp/grid-<name>.png")
+```
+
+Read the wall lines off it — column `c` is `x = c*64`, row `r` is `y = r*64` — and record only
+the building envelope and the room dividers. Leave furniture unwalled so people can walk round
+a table. Leave a gap where each doorway is; the door document fills it.
+
+Check it with the gap test: every wall end must terminate on another wall, except the two
+either side of a doorway. Zero genuine gaps means zero light leaks.
+
+### Detection, for maps that have not been traced
 
 `detect_map_walls()` line-detects the long runs, rasterises **those** into a coarse grid,
 floods from the edge of the map to find the inside, and traces the boundary of it. The
