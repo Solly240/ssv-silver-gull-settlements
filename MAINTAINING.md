@@ -243,6 +243,11 @@ working map (Foundry's own default scene, the Czepeku packs) stores its image as
 `texture.src`. Writing `background.src` there is silently dropped, leaving a scene with correct
 walls, lights and tokens but no picture — flat grey with the light polygons showing through.
 
+**A tile's `x`/`y` is its CENTRE, not its corner** — the texture anchor defaults to 0.5/0.5.
+Placing the map tile at `0,0` hangs three quarters of it off the top-left and stretches the
+bottom-right quadrant across the visible area, which looks like a broken map rather than an
+offset one. Put it at `width/2, height/2`.
+
 `ensureBackground()` branches on the schema: the old field where it exists, otherwise a locked
 Tile at `sort: -1000`, flagged `mapBackground` so rebuilds can find and resize it. **Check the
 schema, never the version number** — this field has now moved twice.

@@ -396,9 +396,13 @@ async function ensureBackground(scene, src, geo) {
   const width = geo?.width ?? scene.width;
   const height = geo?.height ?? scene.height;
   const mine = scene.tiles.filter((t) => t.getFlag(MODULE_ID, MAP_TILE));
+  // A tile's texture anchor is 0.5/0.5, so x/y is its CENTRE, not its top-left corner.
+  // Placing it at 0,0 hangs three quarters of the map off the top-left of the scene and
+  // leaves the bottom-right quadrant stretched across the visible area — which reads as
+  // "the map is broken" rather than "the map is offset".
   const want = {
     texture: { src },
-    x: 0, y: 0, width, height,
+    x: width / 2, y: height / 2, width, height,
     elevation: 0, sort: -1000, locked: true,
     restrictions: { light: false, weather: false },
     flags: { [MODULE_ID]: { [MAP_TILE]: true } },
@@ -410,8 +414,10 @@ async function ensureBackground(scene, src, geo) {
     }
     if (mine.length) {
       const t = mine[0];
-      if (t.texture?.src !== src || t.width !== width || t.height !== height) {
-        await t.update({ "texture.src": src, x: 0, y: 0, width, height, sort: -1000, locked: true });
+      if (t.texture?.src !== src || t.width !== width || t.height !== height
+          || t.x !== width / 2 || t.y !== height / 2) {
+        await t.update({ "texture.src": src, x: width / 2, y: height / 2, width, height,
+                         sort: -1000, locked: true });
       }
     } else {
       await scene.createEmbeddedDocuments("Tile", [want]);
