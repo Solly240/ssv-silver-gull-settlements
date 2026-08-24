@@ -555,6 +555,10 @@ async function buildScene(cityId, locId, { rebuild = false } = {}) {
       size: geo.gridSize,
     },
     tokenVision: loc.interior.tokenVision ?? true,
+    // No exploration fog. These are shops and habs, not a dungeon to map out — and every
+    // wall change resets fog, so the GM was left staring at a fully unexplored grey map
+    // after each rebuild. Token vision still limits what players see live.
+    fog: { mode: loc.interior.fog ?? (CONST.FOG_EXPLORATION_MODES?.DISABLED ?? 0) },
     flags: {
       [MODULE_ID]: {
         cityId, locId,

@@ -72,6 +72,12 @@ python3 tools/build_settlements.py
 node tools/check_geometry.js
 ```
 
+**Exploration fog is off on settlement scenes.** These are shops and habs, not a dungeon to
+map out — and every wall change resets fog, so after a rebuild the GM was left looking at a
+fully unexplored grey map and reasonably concluded the art was broken. `fog.mode` is
+`DISABLED`; token vision still limits what players see live. Override per interior with
+`"fog": 1`.
+
 ### Walls are traced as closed regions, not detected as lines
 
 `detect_map_walls()` line-detects the long runs, rasterises **those** into a coarse grid,
