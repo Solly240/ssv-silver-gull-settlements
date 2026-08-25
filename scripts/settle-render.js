@@ -1226,9 +1226,9 @@
   SSVSET.stageOf = stageOf;
 
   /** Quests a giver still has business over — drives the marker over their token. */
-  function pendingQuests(npc, state) {
+  function pendingQuests(npc, state, loc) {
     return (npc.quests || []).filter((q, i) => {
-      const st = stageOf(state, questKey(null, npc, q, i));
+      const st = stageOf(state, questKey(loc, npc, q, i));
       return st === "offered" || st === "ready";
     });
   }

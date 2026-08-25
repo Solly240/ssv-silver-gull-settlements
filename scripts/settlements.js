@@ -129,7 +129,7 @@ function standingSummary(city) {
     const data = api.getData();
     const value = Number(data?.[city.faction]?.standing);
     if (!Number.isFinite(value)) return null;
-    const name = (api.FACTIONS || []).find((f) => f.id === city.faction)?.name || city.faction;
+    const name = api.FACTIONS?.[city.faction]?.name || city.faction;
     return { faction: name, value };
   } catch (e) {
     return null;
@@ -159,7 +159,12 @@ function buildCtx() {
     leave: () => requestLeave(),
     closeCard: () => closeCard(),
     openShop: (shopId, npc) => openShopFor(shopId, npc),
-    openSheet: (npc) => game.actors.getName(npc.actor)?.sheet?.render(true),
+    openSheet: (npc) => {
+      const name = npc?.dossier?.actor || npc?.actor;
+      const actor = name ? game.actors.getName(name) : null;
+      if (!actor) return ui.notifications?.warn(`No actor named "${name || "?"}" in this world.`);
+      actor.sheet?.render(true);
+    },
     say: (npc, line) => sayLine(npc, line),
     acceptedTitles,
     closeDossier,
@@ -840,6 +845,7 @@ function onTokenMoved(doc) {
   for (const [userId, where] of Object.entries(getState().whereIs || {})) {
     if (where !== locId) continue;
     const user = game.users.get(userId);
+    if (!user) continue;                 // a deleted user can linger in whereIs
     if (justEntered(userId)) continue;
     if (actorForUser(user)?.id === doc.actorId) gmLeave(userId);
   }
@@ -1271,7 +1277,7 @@ function markerWanted(tokenDoc) {
   if (!npcKey || !locId) return false;
   const { npc } = npcAt(locId, npcKey);
   if (!npc?.quests?.length) return false;
-  return S().pendingQuests(npc, getState()).length > 0;
+  return S().pendingQuests(npc, getState(), { id: locId }).length > 0;
 }
 
 function drawMarker(token) {
@@ -1600,7 +1606,7 @@ Hooks.once("ready", async () => {
     if (stale.length) {
       ui.notifications?.warn(
         `Settlements: ${stale.length} scene${stale.length === 1 ? "" : "s"} built from an older map. ` +
-        `Press C, open the GM panel and use Rebuild every scene — or just walk in, which repairs it.`,
+        `Press G, open the GM panel and use Rebuild every scene — or just walk in, which repairs it.`,
         { permanent: true }
       );
       console.log(`${MODULE_ID} | stale scenes:`, stale.map((x) => x.scene.name));
