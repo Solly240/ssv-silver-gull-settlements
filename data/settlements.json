@@ -285,7 +285,8 @@
          "y": 470
         }
        }
-      }
+      },
+      "view": "assets/fronts/frostwatch-the-frostwatch-tab.webp"
      },
      "chatter": [
       "\u2026and then the rings just ate the whole signal. Gone.",
@@ -617,7 +618,8 @@
          "y": 470
         }
        }
-      }
+      },
+      "view": "assets/fronts/frostwatch-the-trade-post.webp"
      },
      "chatter": [
       "Filters are up again. Everything's up.",
@@ -840,7 +842,8 @@
          "y": 690
         }
        }
-      }
+      },
+      "view": "assets/fronts/frostwatch-the-bonefield.webp"
      },
      "chatter": [
       "Mind the edges. Everything out here is edges.",
@@ -1159,7 +1162,8 @@
          "y": 350
         }
        }
-      }
+      },
+      "view": "assets/fronts/frostwatch-administrators-hab.webp"
      },
      "chatter": [
       "The tap's browning out again.",
@@ -1412,7 +1416,8 @@
          "y": 790
         }
        }
-      }
+      },
+      "view": "assets/fronts/frostwatch-the-warmroom.webp"
      },
      "chatter": [
       "Keep it elevated.",
@@ -1607,7 +1612,8 @@
          "y": 440
         }
        }
-      }
+      },
+      "view": "assets/fronts/frostwatch-pad-three.webp"
      },
      "chatter": [
       "Lines are cold. Give it a minute.",
@@ -1791,7 +1797,8 @@
          "y": 480
         }
        }
-      }
+      },
+      "view": "assets/fronts/frostwatch-the-back-shed.webp"
      },
      "chatter": [
       "Keep your voice down."
@@ -1912,7 +1919,8 @@
        "#,,,,,,,,,,,,,,#",
        "#,,,,,,XX,,,,,,#",
        "#######++#######"
-      ]
+      ],
+      "view": "assets/fronts/kettle-the-ice-gate.webp"
      },
      "chatter": [
       "State your business.",
@@ -1988,7 +1996,8 @@
        "#................#",
        "#.......XX.......#",
        "########++########"
-      ]
+      ],
+      "view": "assets/fronts/kettle-hollow-hall.webp"
      },
      "npcs": [
       {
