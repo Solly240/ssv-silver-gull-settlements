@@ -7,7 +7,7 @@
       "name": "Solly240"
     }
   ],
-  "version": "0.8.0",
+  "version": "0.9.0",
   "compatibility": {
     "minimum": "12",
     "verified": "14"
@@ -22,7 +22,8 @@
   ],
   "esmodules": [
     "scripts/settlements.js",
-    "scripts/sites.js"
+    "scripts/sites.js",
+    "scripts/home.js"
   ],
   "languages": [
     {
