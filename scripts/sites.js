@@ -207,10 +207,15 @@ async function build(siteId, { notify = true } = {}) {
 
   const img = await uploadMap(site, model);
 
-  // Replace any previous scene for this site.
+  // Replace every previous scene for this site — by id AND by flag.
+  //
+  // Looking only at the stored id leaves a duplicate behind whenever the id is not on file:
+  // a scene built before the setting existed, or adopted by flag in list(). That is exactly
+  // how three stale gridded copies survived a rebuild once.
   const prevId = getSiteState()[siteId]?.sceneId;
-  const prev = prevId ? game.scenes.get(prevId) : null;
-  if (prev) await prev.delete();
+  const prev = game.scenes.filter((sc) =>
+    sc.id === prevId || sc.getFlag(MODULE_ID, "siteId") === siteId);
+  for (const sc of prev) await sc.delete();
 
   const g = model.gridSize;
   const hasBackground = "background" in Scene.implementation.schema.fields;
