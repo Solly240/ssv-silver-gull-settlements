@@ -50,7 +50,12 @@ function list() {
       const own = st[s.id] || {};
       const discovered = own.discovered ?? false;
       const locked = own.locked ?? true;
-      const scene = own.sceneId ? game.scenes.get(own.sceneId) : null;
+      // Fall back to the flag when the id is not on file — a scene built before this
+      // setting existed, or one the GM renamed, is still ours and should be adopted
+      // rather than silently rebuilt.
+      const scene = (own.sceneId ? game.scenes.get(own.sceneId) : null)
+        || game.scenes.find((sc) => sc.getFlag(MODULE_ID, "siteId") === s.id)
+        || null;
       return {
         ...s,
         discovered,
