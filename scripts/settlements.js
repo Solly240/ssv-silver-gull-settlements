@@ -155,7 +155,18 @@ function buildCtx() {
     close: () => closeHub(),
     notify: (m) => ui.notifications?.info(m),
     confirm: (q) => confirmDialog(q),
-    enter: (locId) => requestEnter(locId),
+    enter: (locId) => requestEnter(locId),        // GM escape hatch: the built battlemap
+    // Walking into a place is now just a view change — no scene, no socket, no GM needed.
+    open: (locId) => { S().setOpenLoc(locId); drawHub(); },
+    back: () => { S().setOpenLoc(null); drawHub(); },
+    openNpc: (locId, npcKey) => openNpcAt(locId, npcKey),
+    // Sites live in sites.js and talk to us only through this global, so a broken
+    // dungeon cannot stop the settlement hub from drawing.
+    sites: globalThis.SSVSITES?.list?.() || [],
+    openSite: (id) => globalThis.SSVSITES?.open?.(id),
+    revealSite: (id, v) => globalThis.SSVSITES?.gm?.reveal?.(id, v),
+    lockSite: (id, v) => globalThis.SSVSITES?.gm?.lock?.(id, v),
+    buildSite: (id) => globalThis.SSVSITES?.gm?.build?.(id),
     leave: () => requestLeave(),
     closeCard: () => closeCard(),
     openShop: (shopId, npc) => openShopFor(shopId, npc),
@@ -267,6 +278,24 @@ async function openNpcCard(tokenDoc) {
   // talking to whom so the dossier is already open when the conversation starts.
   if (game.user.isGM) return openDossier(locId, npcKey);
   S().renderNpcCard(cardRoot(), buildCtx(), { ...npc, locId: locId }, loc);
+  if (npc.quests?.length) emit({ toGM: true, type: "questGiver", npcKey, locId, userId: game.user.id });
+}
+
+/**
+ * Open a person from the location view's people list.
+ *
+ * Same split as clicking their token: the GM gets the full dossier, a player gets the
+ * hand-off card, and the GM is told who walked up to whom. Kept separate from
+ * openNpcCard because that one is handed a TokenDocument and reads its flags.
+ */
+async function openNpcAt(locId, npcKey) {
+  await loadContent();
+  const { loc } = findLoc(locId);
+  const npc = (loc?.npcs || []).find((n) => n.key === npcKey);
+  if (!npc) return ui.notifications?.warn("That person is not here any more.");
+
+  if (game.user.isGM) return openDossier(locId, npcKey);
+  S().renderNpcCard(cardRoot(), buildCtx(), { ...npc, locId }, loc);
   if (npc.quests?.length) emit({ toGM: true, type: "questGiver", npcKey, locId, userId: game.user.id });
 }
 

@@ -285,6 +285,29 @@ not `cover`): the image sizes the frame and the frame shrink-wraps the image, so
 authored at 0.49/0.59 is on the same building at every window shape. If you ever switch to
 `cover`, every hotspot drifts.
 
+## 4b. Inside a place — the location view
+
+**Clicking a location opens a picture, not a scene.** `renderLocation()` shows
+`interior.img` with the location's people beside it: named NPCs get a row each (portrait,
+role, blurb, **Talk**, and **Browse wares** when they carry a `shopId`), and everyone
+flagged `crowd: true` is summarised into one muted line rather than getting a row.
+
+This is a view change only — `ctx.open(locId)` sets `uiState.openLoc` and redraws.
+**No scene is built, nothing is written, and no GM needs to be connected**, which is why
+this path cannot fail the way `requestEnter` could. `renderCity` checks `uiState.openLoc`
+first and delegates; `openHub` clears it via `resetUiState`, so the hub always opens on the
+settlement.
+
+The battlemaps are still there. The GM gets a **Go tactical** button in the location header
+which calls the old `ctx.enter(locId)` — scene build, token, exit zones, wander engine, all
+unchanged. Everything in sections 3 and 5 still applies to that path; it is now the
+exception rather than the way in.
+
+**Interiors want a *view* of the room, not a floorplan.** `interior.img` currently points at
+the top-down battlemap, which reads oddly as a photograph. New settlements should generate
+an interior view instead — and if a location is never going tactical it needs no geometry
+at all, which is the point of the change.
+
 ## 5. Scenes
 
 `buildScene()` creates a scene named `"<Settlement> — <Location>"` carrying a flag block

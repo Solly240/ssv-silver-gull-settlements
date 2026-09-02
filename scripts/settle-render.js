@@ -748,6 +748,33 @@
   font-family:'Courier New',monospace;}
 #ssvset-leave .sgset-btn{background:rgba(4,14,22,.92);box-shadow:0 8px 26px rgba(0,0,0,.5);}
 
+/* ---- sites (dungeons) in the hub side panel ---- */
+.sgset-sites{border-top:1px solid var(--edge);margin-top:10px;padding-top:10px;}
+.sgset-sites h4{margin:0 0 7px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);}
+.sgset-site{border:1px solid var(--edge);border-radius:10px;background:rgba(9,24,36,.72);
+  padding:9px;margin-bottom:7px;}
+.sgset-site.is-blocked{opacity:.55;}
+.sgset-site .nm{font-size:13px;color:var(--ink);}
+.sgset-site .rg{font-size:10px;color:var(--teal);letter-spacing:.07em;text-transform:uppercase;}
+.sgset-site .bl{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:4px;}
+.sgset-site .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+/* ---- location view: a picture of the place, and the people in it ---- */
+.sgset-person{border:1px solid var(--edge);border-radius:10px;background:rgba(9,24,36,.72);
+  padding:9px;display:flex;gap:10px;align-items:flex-start;}
+.sgset-person .port,.sgset-person .portfallback{flex:0 0 46px;width:46px;height:46px;
+  border-radius:8px;border:1px solid var(--edge);background:rgba(4,14,22,.7);}
+.sgset-person .port{object-fit:cover;}
+.sgset-person .portfallback{display:flex;align-items:center;justify-content:center;
+  font-size:19px;color:var(--muted);}
+.sgset-person .body{flex:1 1 auto;min-width:0;}
+.sgset-person .name{font-size:13px;color:var(--ink);}
+.sgset-person .role{font-size:10px;color:var(--teal);letter-spacing:.09em;text-transform:uppercase;}
+.sgset-person .blurb{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:4px;}
+.sgset-person .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.sgset-crowd{font-size:11.5px;color:var(--muted);font-style:italic;padding:9px 10px;
+  border:1px dashed var(--edge);border-radius:9px;line-height:1.5;}
+.sgset-backbtn{margin-right:9px;}
 @media (max-width:900px){.sgset{flex-direction:column;}.sgset-side{flex:0 0 46%;max-width:none;
   border-left:none;border-top:1px solid var(--edge);}}
 `;
@@ -835,12 +862,16 @@
    * 5. The settlement hub
    * ------------------------------------------------------------------ */
 
-  const uiState = { filter: "", gmPanel: false, activeLoc: null };
+  const uiState = { filter: "", gmPanel: false, activeLoc: null, openLoc: null };
   SSVSET.resetUiState = () => {
     uiState.filter = "";
     uiState.gmPanel = false;
     uiState.activeLoc = null;
+    uiState.openLoc = null;
   };
+  // Which location's interior view is open, if any. Set by the wiring, read on redraw.
+  SSVSET.setOpenLoc = (id) => { uiState.openLoc = id || null; };
+  SSVSET.getOpenLoc = () => uiState.openLoc;
 
   // The haystack the search box matches against, precomputed onto each element so
   // filtering is a pure DOM pass with no access to the location objects.
@@ -874,6 +905,15 @@
       return;
     }
     const state = ctx.state || {};
+
+    // Standing inside a place: show its picture and who is in it, not the settlement.
+    if (uiState.openLoc) {
+      const raw = (city.locations || []).find((l) => l.id === uiState.openLoc);
+      const a = raw ? annotate(raw, state, ctx.isGM) : null;
+      if (a && a.visible) return renderLocation(root, ctx, a);
+      uiState.openLoc = null;                 // it vanished or went hidden — fall back to the hub
+    }
+
     const tod = state.timeOfDay || "day";
     const locs = (city.locations || []).map((l) => annotate(l, state, ctx.isGM)).filter((l) => l.visible);
     const q = uiState.filter.trim().toLowerCase();
@@ -924,6 +964,7 @@
     <div class="sgset-list">
       ${locs.map((l) => locRowHtml(l, ctx)).join("")}
       <div class="sgset-empty"${shown.length ? ' style="display:none"' : ""}>Nothing here matches</div>
+      ${sitesBlockHtml(ctx)}
     </div>
     <div class="sgset-sidefoot">
       ${partyFootHtml(locs, ctx)}
@@ -935,6 +976,129 @@
     wireCity(root, ctx, locs);
   }
   SSVSET.renderCity = renderCity;
+
+  /* ------------------------------------------------------------------ *
+   * 5b. Inside a place — its picture, and the people you can talk to
+   *
+   * No scene, no tokens, no walking about. A settlement interior is somewhere you
+   * have a conversation or buy something, and both of those are this screen. The
+   * GM keeps a "Go tactical" escape hatch to the built battlemap for the rare
+   * fight in the bar.
+   * ------------------------------------------------------------------ */
+
+  const CROWD_COUNT = ["no", "a", "two", "three", "four", "five", "six", "seven", "eight"];
+
+  /** Background extras get one muted line between them rather than a row each. */
+  function crowdLine(crowd) {
+    const by = new Map();
+    for (const n of crowd) {
+      const nm = (n.name || "Someone").toLowerCase();
+      by.set(nm, (by.get(nm) || 0) + 1);
+    }
+    const parts = [...by.entries()].map(([nm, c]) =>
+      `${CROWD_COUNT[c] || c} ${c === 1 ? nm : nm + "s"}`);
+    const list = parts.length > 1
+      ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`
+      : parts[0];
+    return `Also here: ${list}.`;
+  }
+
+  function personRowHtml(n, loc, ctx) {
+    const src = n.portrait ? (ctx.assetPath ? ctx.assetPath(n.portrait) : n.portrait) : null;
+    const tags = [];
+    if (n.shopId) tags.push(`<span class="sgset-tag shop">Trade</span>`);
+    if ((n.quests || []).length) tags.push(`<span class="sgset-tag giver">Business</span>`);
+    return `
+<div class="sgset-person">
+  ${src
+    ? `<img class="port" src="${esc(src)}" alt="">`
+    : `<div class="portfallback">${kindOf(loc.kind).glyph}</div>`}
+  <div class="body">
+    <div class="name">${esc(n.name || "Someone")}</div>
+    ${n.role ? `<div class="role">${esc(n.role)}</div>` : ""}
+    ${n.blurb ? `<div class="blurb">${esc(n.blurb)}</div>` : ""}
+    ${tags.length ? `<div class="sgset-tags">${tags.join("")}</div>` : ""}
+    <div class="acts">
+      <button class="sgset-mini" data-act="talk" data-npc="${esc(n.key)}">Talk</button>
+      ${n.shopId
+        ? (ctx.hasShopModule
+            ? `<button class="sgset-mini" data-act="wares" data-npc="${esc(n.key)}">Browse wares</button>`
+            : `<button class="sgset-mini" disabled title="Shop module is off">Trade unavailable</button>`)
+        : ""}
+    </div>
+  </div>
+</div>`;
+  }
+
+  function renderLocation(root, ctx, loc) {
+    ensureStyles(root.ownerDocument);
+    const state = ctx.state || {};
+    const tod = state.timeOfDay || "day";
+    const img = loc.interior?.img;
+    const all = loc.npcs || [];
+    const named = all.filter((n) => !n.crowd);
+    const crowd = all.filter((n) => n.crowd);
+    const reason = blockReason(loc);
+
+    root.innerHTML = `
+<div class="sgset">
+  <div class="sgset-stage">
+    ${img ? `
+    <div class="sgset-frame">
+      <img class="sgset-art is-${esc(tod)}" src="${esc(ctx.assetPath ? ctx.assetPath(img) : img)}" alt="">
+      <div class="sgset-scrim"></div>
+    </div>` : `
+    <div class="sgset-frame" style="width:100%;height:100%">
+      <div class="sgset-noart">${esc(loc.name)} — no picture yet</div>
+    </div>`}
+    <div class="sgset-head">
+      <button class="sgset-iconbtn sgset-backbtn" data-act="back">&lsaquo; ${esc(ctx.city?.name || "Back")}</button>
+      <div>
+        <h2 class="sgset-title">${esc(loc.name)}</h2>
+        <div class="sgset-sub">
+          <span class="sgset-chip">${esc(TIME_LABEL[tod] || tod)}</span>
+          ${loc.hasShop ? `<span class="sgset-chip">Trade</span>` : ""}
+          ${reason ? `<span class="sgset-chip bad">${esc(reason)}</span>` : ""}
+        </div>
+      </div>
+      <div class="sgset-spacer"></div>
+      ${ctx.isGM ? `<button class="sgset-iconbtn" data-act="tactical" title="Open the built battlemap for this place">Go tactical</button>` : ""}
+      <button class="sgset-iconbtn" data-act="close">Close</button>
+    </div>
+  </div>
+  <aside class="sgset-side">
+    <div class="sgset-sidehead">
+      <h3>People here — <span data-count>${named.length}</span></h3>
+    </div>
+    <div class="sgset-list">
+      ${loc.blurb ? `<div class="sgset-brief">${esc(loc.blurb)}</div>` : ""}
+      ${named.map((n) => personRowHtml(n, loc, ctx)).join("")}
+      ${named.length ? "" : `<div class="sgset-empty">Nobody is here right now</div>`}
+      ${crowd.length ? `<div class="sgset-crowd">${esc(crowdLine(crowd))}</div>` : ""}
+    </div>
+    <div class="sgset-sidefoot"><span>Click someone to talk to them</span></div>
+  </aside>
+</div>`;
+
+    const frame = root.querySelector(".sgset-frame");
+    const art = root.querySelector(".sgset-art");
+    if (frame && art) {
+      if (!art.complete) art.addEventListener("load", () => frame.classList.add("is-loaded"), { once: true });
+      else frame.classList.add("is-loaded");
+    }
+
+    const on = (sel, ev, fn) => root.querySelectorAll(sel).forEach((el) => el.addEventListener(ev, fn));
+    const npcOf = (el) => all.find((n) => n.key === el.dataset.npc);
+    on('[data-act="back"]', "click", () => ctx.back());
+    on('[data-act="close"]', "click", () => ctx.close());
+    on('[data-act="tactical"]', "click", () => ctx.enter(loc.id));
+    on('[data-act="talk"]', "click", (e) => ctx.openNpc(loc.id, e.currentTarget.dataset.npc));
+    on('[data-act="wares"]', "click", (e) => {
+      const n = npcOf(e.currentTarget);
+      if (n) ctx.openShop(n.shopId, n);
+    });
+  }
+  SSVSET.renderLocation = renderLocation;
 
   function hotspotHtml(l, ctx) {
     if (!l.hotspot) return "";
@@ -975,6 +1139,43 @@
     ${tags.length ? `<div class="sgset-tags">${tags.join("")}</div>` : ""}
     ${l.here.length ? `<div class="sgset-who">${l.here.map((u) => `<span class="sgset-pip">${esc(userLabel(ctx, u))}</span>`).join("")}</div>` : ""}
   </div>
+</div>`;
+  }
+
+  /**
+   * Places worth travelling to, as opposed to buildings you walk into.
+   *
+   * A player only ever sees a site the GM has revealed, and only enters one the GM has
+   * unlocked — but the real enforcement is on the scene's ownership, not on this list.
+   */
+  function sitesBlockHtml(ctx) {
+    const sites = ctx.sites || [];
+    if (!sites.length) return "";
+    return `
+<div class="sgset-sites">
+  <h4>Sites — ${sites.length}</h4>
+  ${sites.map((s) => {
+    const tags = [];
+    if (s.gmOnly) tags.push(`<span class="sgset-tag gm">Hidden from players</span>`);
+    if (s.locked) tags.push(`<span class="sgset-tag locked">Locked</span>`);
+    if (!s.built) tags.push(`<span class="sgset-tag shut">Not built</span>`);
+    return `
+  <div class="sgset-site ${s.enterable ? "" : "is-blocked"}">
+    <div class="nm">${esc(s.name)}</div>
+    <div class="rg">${esc(s.region || "")}</div>
+    ${s.blurb ? `<div class="bl">${esc(s.blurb)}</div>` : ""}
+    ${ctx.isGM && s.hook ? `<div class="bl" style="color:var(--amber)">${esc(s.hook)}</div>` : ""}
+    ${tags.length ? `<div class="sgset-tags">${tags.join("")}</div>` : ""}
+    <div class="acts">
+      <button class="sgset-mini" data-act="gosite" data-site="${esc(s.id)}"
+              ${s.enterable ? "" : "disabled"}>${s.enterable ? "Travel there" : esc(s.reason)}</button>
+      ${ctx.isGM ? `
+      <button class="sgset-mini ${s.discovered ? "on" : ""}" data-act="sitereveal" data-site="${esc(s.id)}">${s.discovered ? "Revealed" : "Hidden"}</button>
+      <button class="sgset-mini ${s.locked ? "on" : ""}" data-act="sitelock" data-site="${esc(s.id)}">${s.locked ? "Locked" : "Unlocked"}</button>
+      <button class="sgset-mini warn" data-act="sitebuild" data-site="${esc(s.id)}">${s.built ? "Rebuild" : "Build"}</button>` : ""}
+    </div>
+  </div>`;
+  }).join("")}
 </div>`;
   }
 
@@ -1076,9 +1277,9 @@
       if (!l) return;
       if (!l.enterable) {
         if (!ctx.isGM) return ctx.notify(`${l.name} — ${blockReason(l)}`);
-        return ctx.confirm(`${l.name} is ${blockReason(l).toLowerCase()}. Go in anyway?`).then((yes) => yes && ctx.enter(l.id));
+        return ctx.confirm(`${l.name} is ${blockReason(l).toLowerCase()}. Go in anyway?`).then((yes) => yes && ctx.open(l.id));
       }
-      ctx.enter(l.id);
+      ctx.open(l.id);
     };
     on('[data-act="enter"]', "click", (e) => tryEnter(e.currentTarget));
     on('[data-act="enter"]', "keydown", (e) => {
@@ -1101,6 +1302,12 @@
     on('[data-act="recall"]', "click", (e) => ctx.recall(e.currentTarget.dataset.user));
     on('[data-act="dossier"]', "click", (e) =>
       ctx.openDossier(e.currentTarget.dataset.loc, e.currentTarget.dataset.npc));
+
+    const siteOf = (el) => (ctx.sites || []).find((s) => s.id === el.dataset.site);
+    on('[data-act="gosite"]', "click", (e) => ctx.openSite(e.currentTarget.dataset.site));
+    on('[data-act="sitereveal"]', "click", (e) => { const s = siteOf(e.currentTarget); ctx.revealSite(s.id, !s.discovered); });
+    on('[data-act="sitelock"]', "click", (e) => { const s = siteOf(e.currentTarget); ctx.lockSite(s.id, !s.locked); });
+    on('[data-act="sitebuild"]', "click", (e) => ctx.buildSite(e.currentTarget.dataset.site));
   }
 
   /* ------------------------------------------------------------------ *

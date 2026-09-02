@@ -1,23 +1,28 @@
 {
   "id": "ssv-silver-gull-settlements",
-  "title": "SSV Silver Gull — Settlements",
-  "description": "City and town hubs: a full-screen view of the settlement with clickable interesting locations. Walk into a building and you land in a real battlemap with walls, lights and wandering NPCs; walk back out the door and you return to the hub. Interiors are generated from authored floorplans. Click a shopkeeper to trade. Press G to open the settlement view.",
+  "title": "SSV Silver Gull \u2014 Settlements",
+  "description": "City and town hubs: a full-screen view of the settlement with clickable interesting locations. Walk into a building and you get a picture of the place and the people in it \u2014 click someone to talk to them, or to trade. The GM can still drop to a full battlemap when a fight starts. Press G to open the settlement view.",
   "authors": [
     {
       "name": "Solly240"
     }
   ],
-  "version": "0.4.3",
+  "version": "0.6.0",
   "compatibility": {
     "minimum": "12",
     "verified": "14"
   },
   "socket": true,
   "scripts": [
-    "scripts/settle-render.js"
+    "scripts/settle-render.js",
+    "scripts/dungeon-geom.js",
+    "scripts/dungeon-gen.js",
+    "scripts/dungeon-stock.js",
+    "scripts/dungeon-art.js"
   ],
   "esmodules": [
-    "scripts/settlements.js"
+    "scripts/settlements.js",
+    "scripts/sites.js"
   ],
   "languages": [
     {
