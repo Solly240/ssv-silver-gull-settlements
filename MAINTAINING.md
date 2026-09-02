@@ -308,6 +308,57 @@ the top-down battlemap, which reads oddly as a photograph. New settlements shoul
 an interior view instead — and if a location is never going tactical it needs no geometry
 at all, which is the point of the change.
 
+## 4c. Sites — the dungeons
+
+`data/sites.json` holds **a name, a type and a seed** per site and nothing else. The layout is
+regenerated from that seed every time, identically, so the file stays a few lines long and the
+map can never disagree with the walls derived from it. Do not paste geometry in here.
+
+| file | job |
+|---|---|
+| `dungeon-gen.js` | makes a site — `{rects, doors, notes}` in the **Watabou One Page Dungeon schema** |
+| `dungeon-geom.js` | that JSON → walls, doors, spawns, exits, rooms **and corridors** |
+| `dungeon-stock.js` | encounters and loot, budgeted off the real party |
+| `dungeon-art.js` | draws the map from the same geometry |
+| `sites.js` | Foundry: scene, tile, walls, lights, tokens, caches, and the GM lock |
+
+**Walls are derived, never detected.** The floor is a list of grid rectangles, so every edge
+where floor meets not-floor is a wall — closed by construction. None of section 3's
+ink-threshold misery applies to a site. `unreachableRooms()` still flood-fills from the spawn
+as a backstop.
+
+**We match the Watabou schema on purpose.** A real export from
+`watabou.github.io/one-page-dungeon/` (press **J**) drops straight into `SSVDUN.convert()`.
+His generator is *not* open source — only the minified Haxe build is published — which is why
+`dungeon-gen.js` exists; but the door type codes, `rects`, `notes` and `ref` numbering are his,
+and a fixture lives at `tools/fixtures/watabou-underrock.json`.
+
+**A 1-wide rect is a corridor, not a room.** Counting those as rooms inflates the list several
+times over (the fixture reads 34 rooms if you get this wrong; it has 15 rooms and 19 corridors)
+and drops encounters in passages.
+
+**The boss goes in the room that is furthest to *walk* to**, not the one furthest from the
+origin — `dungeon-gen` flags `ending` by straight-line distance, and `dungeon-stock` overrides
+it with a flood fill.
+
+**Encounters are budgeted against the party that actually exists.** `sites.js` counts the
+player-owned characters and averages their levels. Seven level-3 characters is a lot of action
+economy: aiming at the DMG *easy* band gives them nothing to worry about, so guards aim
+between medium and deadly and climb with depth. Bodies per fight are capped at 8 — seven
+players plus a dozen monsters is a forty-minute round.
+
+**The GM's lock is enforced on scene ownership**, not just in the hub UI. Locked or
+undiscovered means `ownership.default = NONE`, so a player cannot call `scene.view()` on it
+whatever the button says. Unlocking sets OBSERVER. `applyAccess()` is the only place that
+should touch this.
+
+**Creatures are SRD stat blocks wearing campaign names** — "Apostle Speaker" is a Cult
+Fanatic. They are imported once into *SSV — Site Creatures* and reused. Loot is real world
+Items on an unlinked *Salvage Cache* token, so the party can actually take it.
+
+**Rebuilding a site deletes and remakes its scene.** Anything hand-placed is lost. Sites are
+cheap to regenerate and a half-updated dungeon is worse than a fresh one.
+
 ## 5. Scenes
 
 `buildScene()` creates a scene named `"<Settlement> — <Location>"` carrying a flag block
