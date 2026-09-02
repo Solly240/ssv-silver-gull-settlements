@@ -42,7 +42,7 @@
   const TYPES = {
     derelict: {
       label: "Derelict",
-      room: [2, 5], corridor: [2, 6], straightness: 0.72, chambers: 1, loops: 2,
+      room: [4, 8], corridor: [2, 5], width: 2, straightness: 0.72, chambers: 1, loops: 2,
       doorMix: [1, 1, 1, 0, 0, 9, 5, 6],
       titles: [
         "the {ship}", "the wreck of the {ship}", "{ship}, adrift", "the hulk of the {ship}",
@@ -73,7 +73,7 @@
     },
     station: {
       label: "Station",
-      room: [3, 6], corridor: [1, 4], straightness: 0.5, chambers: 1, loops: 3,
+      room: [5, 9], corridor: [2, 4], width: 2, straightness: 0.5, chambers: 1, loops: 3,
       doorMix: [1, 1, 0, 0, 2, 5, 6, 4],
       titles: ["{name} Station", "{name} Depot", "the {name} Waystation"],
       ships: ["Sett Lower", "Vorrn Transit", "Ninth Ring", "Kell Anchorage", "Bonefield Annex", "Coldwater"],
@@ -96,7 +96,7 @@
     },
     hollow: {
       label: "Ice hollow",
-      room: [2, 5], corridor: [1, 5], straightness: 0.35, chambers: 2, loops: 1,
+      room: [4, 9], corridor: [2, 4], width: 2, straightness: 0.35, chambers: 2, loops: 1,
       doorMix: [0, 0, 0, 2, 2, 1, 6],
       titles: ["the {name} Hollow", "{name} Deep", "the hollows under {name}"],
       ships: ["Kettle", "Vorrn", "Greylight", "Sable", "the Bonefield", "Nine Winters"],
@@ -119,7 +119,7 @@
     },
     ancient: {
       label: "Ancient site",
-      room: [3, 6], corridor: [2, 5], straightness: 0.85, chambers: 1, loops: 2,
+      room: [5, 9], corridor: [2, 4], width: 3, straightness: 0.85, chambers: 1, loops: 2,
       doorMix: [1, 0, 2, 6, 6, 5, 4],
       titles: ["the {name} Vault", "{name} Threshold", "the Gate-work at {name}"],
       ships: ["Erevos", "Keth Minor", "the Corrupted Ring", "Talvos", "Zero Ambit"],
@@ -190,7 +190,7 @@
     };
 
     // First room at the origin.
-    const first = { x: 0, y: 0, w: between(rng, T.room), h: between(rng, T.room) };
+    const first = { x: 0, y: 0, w: between(rng, T.room), h: between(rng, T.room), kind: "room" };
     claim(first);
     placed.push(first);
 
@@ -205,18 +205,34 @@
       const [dxn, dyn] = dir;
 
       // A cell on the outward-facing side of the source room.
-      const along = dxn !== 0 ? between(rng, [0, from.h - 1]) : between(rng, [0, from.w - 1]);
+      // A one-cell passage is a corridor you cannot fight in — mouths and runs are W wide.
+      const W = Math.min(T.width || 1, dxn !== 0 ? from.h : from.w);
+      const along = dxn !== 0
+        ? between(rng, [0, Math.max(0, from.h - W)])
+        : between(rng, [0, Math.max(0, from.w - W)]);
       const doorCell = dxn !== 0
         ? { x: dxn > 0 ? from.x + from.w : from.x - 1, y: from.y + along }
         : { x: from.x + along, y: dyn > 0 ? from.y + from.h : from.y - 1 };
+      const mouth = dxn !== 0
+        ? { x: doorCell.x, y: doorCell.y, w: 1, h: W }
+        : { x: doorCell.x, y: doorCell.y, w: W, h: 1 };
 
       const runLen = between(rng, T.corridor);
       const corridor = [];
-      for (let i = 1; i <= runLen; i++) corridor.push({ x: doorCell.x + dxn * i, y: doorCell.y + dyn * i });
+      for (let i = 1; i <= runLen; i++) {
+        for (let j = 0; j < W; j++) {
+          corridor.push({
+            x: doorCell.x + dxn * i + (dxn !== 0 ? 0 : j),
+            y: doorCell.y + dyn * i + (dyn !== 0 ? 0 : j),
+          });
+        }
+      }
 
       const rw = between(rng, T.room);
       const rh = between(rng, T.room);
-      const head = corridor.length ? corridor[corridor.length - 1] : doorCell;
+      const head = runLen
+        ? { x: doorCell.x + dxn * runLen, y: doorCell.y + dyn * runLen }
+        : doorCell;
       const room = {
         x: dxn !== 0 ? (dxn > 0 ? head.x + 1 : head.x - rw) : head.x - Math.floor(rng() * rw),
         y: dyn !== 0 ? (dyn > 0 ? head.y + 1 : head.y - rh) : head.y - Math.floor(rng() * rh),
@@ -224,7 +240,7 @@
       };
 
       // Everything the proposal would occupy, and everything it would touch.
-      const want = [[doorCell.x, doorCell.y], ...corridor.map((c) => [c.x, c.y]), ...cellsOf(room)];
+      const want = [...cellsOf(mouth), ...corridor.map((c) => [c.x, c.y]), ...cellsOf(room)];
       const parent = new Set(cellsOf(from).map(([x, y]) => key(x, y)));
       if (want.some(([x, y]) => occupied.has(key(x, y)))) continue;
       let touches = false;
@@ -239,11 +255,12 @@
       }
       if (touches) continue;
 
-      claim({ x: doorCell.x, y: doorCell.y, w: 1, h: 1 });
-      if (corridor.length) claim(runRect(doorCell, dxn, dyn, corridor.length));
+      claim({ ...mouth, kind: "corridor" });
+      if (runLen) claim({ ...runRect(doorCell, dxn, dyn, runLen, W), kind: "corridor" });
+      room.kind = "room";
       claim(room);
       placed.push(room);
-      doors.push({ x: doorCell.x, y: doorCell.y, dir: { x: dxn, y: dyn }, type: pick(rng, T.doorMix) });
+      doors.push({ x: doorCell.x, y: doorCell.y, dir: { x: dxn, y: dyn }, type: pick(rng, T.doorMix), span: W });
       lastDir = dir;
 
       // Some chambers are two overlapping rects, which stops an ice hollow reading as boxes.
@@ -262,7 +279,7 @@
           }
           return true;
         });
-        if (free) claim(bump);
+        if (free) claim({ ...bump, kind: "room" });
       }
     }
 
@@ -275,9 +292,9 @@
       if (a === b) continue;
       const link = tryLink(a, b, occupied, rng);
       if (!link) continue;
-      claim({ x: link.door.x, y: link.door.y, w: 1, h: 1 });
-      if (link.corridor.length) claim(runRect(link.door, link.dir.x, link.dir.y, link.corridor.length));
-      doors.push({ x: link.door.x, y: link.door.y, dir: link.dir, type: pick(rng, T.doorMix) });
+      claim({ x: link.door.x, y: link.door.y, w: 1, h: 1, kind: "corridor" });
+      if (link.corridor.length) claim({ ...runRect(link.door, link.dir.x, link.dir.y, link.corridor.length), kind: "corridor" });
+      doors.push({ x: link.door.x, y: link.door.y, dir: link.dir, type: pick(rng, T.doorMix), span: 1 });
       loops--;
     }
 
@@ -289,13 +306,13 @@
     ending.ending = true;
 
     // Stairs in, on the outside of the first room; stairs out of the deepest.
-    doors.push({ x: first.x - 1, y: first.y, dir: { x: 1, y: 0 }, type: 3 });
-    claim({ x: first.x - 1, y: first.y, w: 1, h: 1 });
+    doors.push({ x: first.x - 1, y: first.y, dir: { x: 1, y: 0 }, type: 3, span: 1 });
+    claim({ x: first.x - 1, y: first.y, w: 1, h: 1, kind: "corridor" });
     if (rng() < 0.6) {
       const ex = { x: ending.x + ending.w, y: ending.y + ending.h - 1 };
       if (!occupied.has(key(ex.x, ex.y))) {
-        doors.push({ x: ex.x, y: ex.y, dir: { x: 1, y: 0 }, type: 8 });
-        claim({ x: ex.x, y: ex.y, w: 1, h: 1 });
+        doors.push({ x: ex.x, y: ex.y, dir: { x: 1, y: 0 }, type: 8, span: 1 });
+        claim({ x: ex.x, y: ex.y, w: 1, h: 1, kind: "corridor" });
       }
     }
 
@@ -337,11 +354,11 @@
   GEN.generate = generate;
 
   /** A straight run of cells leaving a door, as one rect — not one rect per cell. */
-  function runRect(from, dx, dy, len) {
-    if (dx > 0) return { x: from.x + 1, y: from.y, w: len, h: 1 };
-    if (dx < 0) return { x: from.x - len, y: from.y, w: len, h: 1 };
-    if (dy > 0) return { x: from.x, y: from.y + 1, w: 1, h: len };
-    return { x: from.x, y: from.y - len, w: 1, h: len };
+  function runRect(from, dx, dy, len, w = 1) {
+    if (dx > 0) return { x: from.x + 1, y: from.y, w: len, h: w };
+    if (dx < 0) return { x: from.x - len, y: from.y, w: len, h: w };
+    if (dy > 0) return { x: from.x, y: from.y + 1, w, h: len };
+    return { x: from.x, y: from.y - len, w, h: len };
   }
 
   /** A straight corridor between two rooms, if one fits without touching anything else. */

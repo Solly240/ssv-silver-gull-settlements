@@ -62,10 +62,12 @@
     p.push(`<g mask="url(#outside)" stroke="${t.ink}" stroke-linecap="round" opacity=".9">${hatch(m, g, band)}</g>`);
     p.push(`<g fill="${t.floor}">${cellRects.join("")}</g>`);
 
-    const lines = [];
-    for (let x = 0; x <= m.width; x += g) lines.push(`M${x} 0V${m.height}`);
-    for (let y = 0; y <= m.height; y += g) lines.push(`M0 ${y}H${m.width}`);
-    p.push(`<path d="${lines.join("")}" stroke="${t.grid}" stroke-width="1" fill="none" clip-path="url(#floor)"/>`);
+    if (opts.grid !== false) {
+      const lines = [];
+      for (let x = 0; x <= m.width; x += g) lines.push(`M${x} 0V${m.height}`);
+      for (let y = 0; y <= m.height; y += g) lines.push(`M0 ${y}H${m.width}`);
+      p.push(`<path d="${lines.join("")}" stroke="${t.grid}" stroke-width="1" fill="none" clip-path="url(#floor)"/>`);
+    }
 
     // Flagstone speckle — deterministic, so the same dungeon always draws the same.
     const dots = [];

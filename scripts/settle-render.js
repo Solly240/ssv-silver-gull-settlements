@@ -1034,7 +1034,9 @@
     ensureStyles(root.ownerDocument);
     const state = ctx.state || {};
     const tod = state.timeOfDay || "day";
-    const img = loc.interior?.img;
+    // An eye-level view of the place if we have one; the old battlemap only as a fallback,
+    // because a top-down floorplan read as a photograph is a picture of the ceiling.
+    const img = loc.interior?.view || loc.interior?.img;
     const all = loc.npcs || [];
     const named = all.filter((n) => !n.crowd);
     const crowd = all.filter((n) => n.crowd);
@@ -1062,7 +1064,6 @@
         </div>
       </div>
       <div class="sgset-spacer"></div>
-      ${ctx.isGM ? `<button class="sgset-iconbtn" data-act="tactical" title="Open the built battlemap for this place">Go tactical</button>` : ""}
       <button class="sgset-iconbtn" data-act="close">Close</button>
     </div>
   </div>
@@ -1091,7 +1092,6 @@
     const npcOf = (el) => all.find((n) => n.key === el.dataset.npc);
     on('[data-act="back"]', "click", () => ctx.back());
     on('[data-act="close"]', "click", () => ctx.close());
-    on('[data-act="tactical"]', "click", () => ctx.enter(loc.id));
     on('[data-act="talk"]', "click", (e) => ctx.openNpc(loc.id, e.currentTarget.dataset.npc));
     on('[data-act="wares"]', "click", (e) => {
       const n = npcOf(e.currentTarget);

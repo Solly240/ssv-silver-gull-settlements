@@ -12,7 +12,8 @@
       "gridSize": 64,
       "darkness": 0.85,
       "blurb": "A hauler down on the ice north of the pads, half-buried and still calling.",
-      "hook": "Her beacon has been repeating the same six seconds since before anyone at Frostwatch arrived. The Bonefield yardmaster will pay for anything brought back off her."
+      "hook": "Her beacon has been repeating the same six seconds since before anyone at Frostwatch arrived. The Bonefield yardmaster will pay for anything brought back off her.",
+      "gridless": true
     },
     {
       "id": "kettle-deep",
@@ -25,7 +26,8 @@
       "gridSize": 64,
       "darkness": 0.9,
       "blurb": "The cuts below Kettle Hollow, where the colony stopped digging and will not say why.",
-      "hook": "The Hollow's Keeper will not discuss what is under the floor of their own colony. The meltwater coming up from it runs warm."
+      "hook": "The Hollow's Keeper will not discuss what is under the floor of their own colony. The meltwater coming up from it runs warm.",
+      "gridless": true
     },
     {
       "id": "bonefield-underhang",
@@ -38,7 +40,8 @@
       "gridSize": 64,
       "darkness": 0.9,
       "blurb": "A void under the salvage yard, opened when a hull section finally went through the ice.",
-      "hook": "Kesh Duval lost two cutters down there and has stopped sending people after them."
+      "hook": "Kesh Duval lost two cutters down there and has stopped sending people after them.",
+      "gridless": true
     }
   ]
 }

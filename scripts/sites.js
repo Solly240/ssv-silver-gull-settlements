@@ -105,7 +105,7 @@ function partyLevel() {
  * from the seed, so there is nothing to ship until a GM asks for this particular site.
  */
 async function uploadMap(site, model) {
-  const svg = globalThis.SSVDUNART.toSvg(model, { theme: site.theme || "dungeon" });
+  const svg = globalThis.SSVDUNART.toSvg(model, { theme: site.theme || "dungeon", grid: !site.gridless });
   const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   try {
@@ -220,7 +220,9 @@ async function build(siteId, { notify = true } = {}) {
     width: model.width,
     height: model.height,
     padding: 0.06,
-    grid: { type: 1, size: g },
+    // Gridless: the rooms are drawn as rooms, and a square grid over illustrated stone
+    // only ever fights the picture. Size still matters — it is the distance scale.
+    grid: { type: site.gridless ? CONST.GRID_TYPES.GRIDLESS : CONST.GRID_TYPES.SQUARE, size: g },
     initial: { x: model.spawns[0]?.x ?? model.width / 2, y: model.spawns[0]?.y ?? model.height / 2, scale: 0.5 },
     tokenVision: true,
     fog: { exploration: true },                 // a dungeon IS a map to uncover

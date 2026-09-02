@@ -145,10 +145,11 @@
     const doors = [];
     for (const d of doorAt.values()) {
       const horizontalTravel = d.dir && d.dir.x !== 0;
+      const span = Math.max(1, d.span || 1);          // a two-wide passage needs a two-wide door
       const seg = horizontalTravel
-        ? [px(d.x + 0.5), py(d.y), px(d.x + 0.5), py(d.y + 1)]
-        : [px(d.x), py(d.y + 0.5), px(d.x + 1), py(d.y + 0.5)];
-      doors.push({ kind: d.kind, seg, cell: { x: d.x, y: d.y } });
+        ? [px(d.x + 0.5), py(d.y), px(d.x + 0.5), py(d.y + span)]
+        : [px(d.x), py(d.y + 0.5), px(d.x + span), py(d.y + 0.5)];
+      doors.push({ kind: d.kind, seg, span, cell: { x: d.x, y: d.y } });
     }
 
     // ---- rooms vs corridors ----
@@ -158,7 +159,10 @@
     const corridors = [];
     (raw.rects || []).forEach((r, i) => {
       if (r.w === 1 && r.h === 1 && doorAtAny(raw, r.x, r.y)) return;      // door cell
-      if (r.w === 1 || r.h === 1) {
+      // Our generator tags each rect; a real Watabou export does not, so fall back to the
+      // shape. Wider corridors mean "1 cell across" is no longer a safe test on our own data.
+      const isCorridor = r.kind ? r.kind === "corridor" : (r.w === 1 || r.h === 1);
+      if (isCorridor) {
         corridors.push({ id: `c${i}`, cell: { ...r }, rect: { x: px(r.x), y: py(r.y), w: r.w * g, h: r.h * g } });
         return;
       }
