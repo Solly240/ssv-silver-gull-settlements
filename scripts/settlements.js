@@ -354,8 +354,38 @@ async function openShopFor(shopId, npc) {
   if (!(api.getShops?.() || {})[shopId]) {
     return ui.notifications?.warn("That shop has not been set up yet — ask your GM.");
   }
+  // Remember where the player was standing. The shop takes over the screen, and closing it
+  // used to drop them nowhere — they had to press G and walk back into the building.
+  const returnLoc = hubOpen() ? S().getOpenLoc?.() : null;
   closeCard();
+  if (returnLoc) closeHub();
   await api.openShop(shopId);
+  if (returnLoc) whenShopCloses(async () => {
+    await openHub();
+    S().setOpenLoc(returnLoc);
+    drawHub();
+  });
+}
+
+/**
+ * Run `then` once the shop UI goes away.
+ *
+ * The shop module has no close hook and hides its root rather than removing it, so watch
+ * the element. Done here rather than by adding a hook over there, because that would mean
+ * a second module update on the server for a one-line integration.
+ */
+function whenShopCloses(then) {
+  const root = document.querySelector(".sgshop");
+  if (!root) return then();
+  const gone = () => !root.isConnected || root.style.display === "none";
+  if (gone()) return then();
+  const obs = new MutationObserver(() => {
+    if (!gone()) return;
+    obs.disconnect();
+    then();
+  });
+  obs.observe(root, { attributes: true, attributeFilter: ["style", "class"] });
+  obs.observe(document.body, { childList: true });
 }
 
 /* ------------------------------------------------------------------ *

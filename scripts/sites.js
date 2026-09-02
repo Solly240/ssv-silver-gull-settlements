@@ -64,8 +64,8 @@ function list() {
         sceneId: scene?.id || null,
         visible: discovered || isGM,
         gmOnly: !discovered && isGM,
-        enterable: isGM || (discovered && !locked && !!scene),
-        reason: !discovered ? "Undiscovered" : locked ? "Locked by the GM" : !scene ? "Not built yet" : "",
+        enterable: !!scene && (isGM || (discovered && !locked)),
+        reason: !scene ? "Not built yet" : !discovered ? "Undiscovered" : locked ? "Locked by the GM" : "",
       };
     })
     .filter((s) => s.visible);
@@ -180,13 +180,15 @@ async function cacheActor() {
 
 /** Spread N tokens around a room centre without stacking them. */
 function spread(room, n, g) {
-  const out = [];
   const cols = Math.max(1, Math.floor(room.rect.w / g));
   const rows = Math.max(1, Math.floor(room.rect.h / g));
-  for (let i = 0; i < n; i++) {
-    const cx = i % cols;
-    const cy = Math.floor(i / cols) % rows;
-    out.push({ x: room.rect.x + cx * g, y: room.rect.y + cy * g });
+  const out = [];
+  // Walk the room's cells in order and stop when it runs out, rather than wrapping with a
+  // modulo — wrapping silently puts the ninth token back on the first one's square.
+  for (let cy = 0; cy < rows && out.length < n; cy++) {
+    for (let cx = 0; cx < cols && out.length < n; cx++) {
+      out.push({ x: room.rect.x + cx * g, y: room.rect.y + cy * g });
+    }
   }
   return out;
 }
@@ -263,18 +265,25 @@ async function build(siteId, { notify = true } = {}) {
   for (const s of model.spawns) lights.push({ x: Math.round(s.x), y: Math.round(s.y), config: { dim: 40, bright: 15 } });
   await scene.createEmbeddedDocuments("AmbientLight", lights);
 
-  // Creatures.
+  // Creatures and caches, placed together.
+  //
+  // One pass per room, because two passes put the cache on the room's centre cell and a
+  // creature there too — every scene came out with tokens stacked on top of each other.
   const tokens = [];
+  const cache = await cacheActor();
   for (const room of plan.rooms) {
-    if (!room.enemies.length) continue;
-    const total = room.enemies.reduce((n, e) => n + e.count, 0);
-    const spots = spread(room, total, g);
+    const heads = room.enemies.reduce((n, e) => n + e.count, 0);
+    const wantsCache = room.loot.length || room.gold;
+    if (!heads && !wantsCache) continue;
+
+    const spots = spread(room, heads + (wantsCache ? 1 : 0), g);
     let i = 0;
+
     for (const e of room.enemies) {
       const actor = await actorFor(e);
       if (!actor) { i += e.count; continue; }
       for (let k = 0; k < e.count; k++) {
-        const at = spots[i++] || { x: room.centre.x, y: room.centre.y };
+        const at = spots[i++] || room.centre;
         const proto = actor.prototypeToken.toObject();
         tokens.push({
           ...proto,
@@ -287,25 +296,22 @@ async function build(siteId, { notify = true } = {}) {
         });
       }
     }
-  }
 
-  // Loot caches.
-  const cache = await cacheActor();
-  for (const room of plan.rooms) {
-    if (!room.loot.length && !room.gold) continue;
+    if (!wantsCache) continue;
     const items = [];
     for (const l of room.loot) {
       const src = game.items.getName(l.name);
       if (!src) { console.warn(`${MODULE_ID} | no item "${l.name}" in the world`); continue; }
       for (let k = 0; k < l.qty; k++) { const o = src.toObject(); delete o._id; items.push(o); }
     }
+    const at = spots[i++] || room.centre;
     const proto = cache.prototypeToken.toObject();
     tokens.push({
       ...proto,
       name: "Salvage",
       actorId: cache.id,
       actorLink: false,
-      x: Math.round(room.centre.x - g / 2), y: Math.round(room.centre.y - g / 2),
+      x: Math.round(at.x), y: Math.round(at.y),
       width: 1, height: 1, hidden: true,
       delta: { items, system: { currency: { gp: room.gold || 0 } } },
       flags: { [MODULE_ID]: { siteId, loot: true } },
@@ -432,8 +438,10 @@ Hooks.once("init", () => {
 Hooks.once("ready", async () => {
   await loadSites();
   globalThis.SSVSITES = { list, open, gm, build, retireInteriorScenes, loadSites, buildModel, siteById };
+  // settlements.js sets mod.api in its own ready hook and the order is not guaranteed, so
+  // attach to whatever is there and let the global be the contract either way.
   const mod = game.modules.get(MODULE_ID);
-  if (mod?.api) mod.api.sites = globalThis.SSVSITES;
+  if (mod) mod.api = Object.assign(mod.api || {}, { sites: globalThis.SSVSITES });
 });
 
 export { list, open, gm, build, retireInteriorScenes };

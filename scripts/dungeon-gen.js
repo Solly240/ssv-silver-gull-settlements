@@ -290,11 +290,15 @@
       const a = pick(rng, placed);
       const b = pick(rng, placed);
       if (a === b) continue;
-      const link = tryLink(a, b, occupied, rng);
+      const link = tryLink(a, b, occupied, rng, T.width || 1);
       if (!link) continue;
-      claim({ x: link.door.x, y: link.door.y, w: 1, h: 1, kind: "corridor" });
-      if (link.corridor.length) claim({ ...runRect(link.door, link.dir.x, link.dir.y, link.corridor.length), kind: "corridor" });
-      doors.push({ x: link.door.x, y: link.door.y, dir: link.dir, type: pick(rng, T.doorMix), span: 1 });
+      const lw = link.width;
+      claim({
+        x: link.door.x, y: link.door.y,
+        w: link.dir.x !== 0 ? 1 : lw, h: link.dir.x !== 0 ? lw : 1, kind: "corridor",
+      });
+      if (link.corridor.length) claim({ ...runRect(link.door, link.dir.x, link.dir.y, link.steps, lw), kind: "corridor" });
+      doors.push({ x: link.door.x, y: link.door.y, dir: link.dir, type: pick(rng, T.doorMix), span: lw });
       loops--;
     }
 
@@ -362,18 +366,21 @@
   }
 
   /** A straight corridor between two rooms, if one fits without touching anything else. */
-  function tryLink(a, b, occupied, rng) {
-    const overlapY = Math.max(a.y, b.y) <= Math.min(a.y + a.h, b.y + b.h) - 1;
-    const overlapX = Math.max(a.x, b.x) <= Math.min(a.x + a.w, b.x + b.w) - 1;
-    let dir, doorCell, steps;
-    if (overlapY && (b.x > a.x + a.w || a.x > b.x + b.w)) {
-      const y = between(rng, [Math.max(a.y, b.y), Math.min(a.y + a.h, b.y + b.h) - 1]);
+  function tryLink(a, b, occupied, rng, width = 1) {
+    const loY = Math.max(a.y, b.y), hiY = Math.min(a.y + a.h, b.y + b.h) - 1;
+    const loX = Math.max(a.x, b.x), hiX = Math.min(a.x + a.w, b.x + b.w) - 1;
+    let dir, doorCell, steps, w;
+    if (hiY >= loY && (b.x > a.x + a.w || a.x > b.x + b.w)) {
+      // The passage is `w` cells tall, so it needs `w` cells of shared wall to start from.
+      w = Math.min(width, hiY - loY + 1);
+      const y = between(rng, [loY, hiY - w + 1]);
       const right = b.x > a.x;
       dir = { x: right ? 1 : -1, y: 0 };
       doorCell = { x: right ? a.x + a.w : a.x - 1, y };
       steps = Math.abs((right ? b.x : b.x + b.w - 1) - doorCell.x) - 1;
-    } else if (overlapX && (b.y > a.y + a.h || a.y > b.y + b.h)) {
-      const x = between(rng, [Math.max(a.x, b.x), Math.min(a.x + a.w, b.x + b.w) - 1]);
+    } else if (hiX >= loX && (b.y > a.y + a.h || a.y > b.y + b.h)) {
+      w = Math.min(width, hiX - loX + 1);
+      const x = between(rng, [loX, hiX - w + 1]);
       const down = b.y > a.y;
       dir = { x: 0, y: down ? 1 : -1 };
       doorCell = { x, y: down ? a.y + a.h : a.y - 1 };
@@ -382,10 +389,16 @@
     if (steps < 0 || steps > 8) return null;
 
     const corridor = [];
-    for (let i = 1; i <= steps; i++) corridor.push({ x: doorCell.x + dir.x * i, y: doorCell.y + dir.y * i });
-    const want = [[doorCell.x, doorCell.y], ...corridor.map((c) => [c.x, c.y])];
-    if (want.some(([x, y]) => occupied.has(key(x, y)))) return null;
-    return { door: doorCell, dir, corridor };
+    for (let i = 0; i <= steps; i++) {
+      for (let j = 0; j < w; j++) {
+        corridor.push({
+          x: doorCell.x + dir.x * i + (dir.x !== 0 ? 0 : j),
+          y: doorCell.y + dir.y * i + (dir.y !== 0 ? 0 : j),
+        });
+      }
+    }
+    if (corridor.some((c) => occupied.has(key(c.x, c.y)))) return null;
+    return { door: doorCell, dir, corridor, steps, width: w };
   }
 
   function shuffle(a, rng) {

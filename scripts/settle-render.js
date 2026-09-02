@@ -748,6 +748,18 @@
   font-family:'Courier New',monospace;}
 #ssvset-leave .sgset-btn{background:rgba(4,14,22,.92);box-shadow:0 8px 26px rgba(0,0,0,.5);}
 
+/* The hub letterboxes because its hotspots are authored against the image and would drift
+   if it cropped. The location view has no hotspots, so it fills the space instead of
+   sitting in a black surround. */
+.sgset-frame.is-cover{width:100%;height:100%;}
+/* The settlement vista is graded from a daylight photo, so a hard hue shift reads as
+   nightfall. An interior is lit by its own lamps — swinging it 200 degrees blue just makes
+   the room look broken. Dim it instead. */
+.sgset-frame.is-cover .sgset-art.is-night{filter:brightness(.66) saturate(.9);}
+.sgset-frame.is-cover .sgset-art.is-dusk{filter:brightness(.82) saturate(.95);}
+.sgset-frame.is-cover .sgset-art.is-dawn{filter:brightness(.92);}
+
+.sgset-frame.is-cover .sgset-art{width:100%;height:100%;object-fit:cover;}
 /* ---- sites (dungeons) in the hub side panel ---- */
 .sgset-sites{border-top:1px solid var(--edge);margin-top:10px;padding-top:10px;}
 .sgset-sites h4{margin:0 0 7px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
@@ -1046,7 +1058,7 @@
 <div class="sgset">
   <div class="sgset-stage">
     ${img ? `
-    <div class="sgset-frame">
+    <div class="sgset-frame is-cover">
       <img class="sgset-art is-${esc(tod)}" src="${esc(ctx.assetPath ? ctx.assetPath(img) : img)}" alt="">
       <div class="sgset-scrim"></div>
     </div>` : `
