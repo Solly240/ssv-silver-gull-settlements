@@ -276,14 +276,19 @@ async function build(siteId, { notify = true } = {}) {
     const wantsCache = room.loot.length || room.gold;
     if (!heads && !wantsCache) continue;
 
+    // The cache is placed last, so reserve it a square up front.
     const spots = spread(room, heads + (wantsCache ? 1 : 0), g);
+    const forCreatures = wantsCache ? Math.max(0, spots.length - 1) : spots.length;
     let i = 0;
 
     for (const e of room.enemies) {
       const actor = await actorFor(e);
       if (!actor) { i += e.count; continue; }
       for (let k = 0; k < e.count; k++) {
-        const at = spots[i++] || room.centre;
+        // Falling back to the room centre when the squares run out is what piled tokens on
+        // top of each other. A room that cannot hold the fight gets a smaller fight.
+        if (i >= forCreatures) break;
+        const at = spots[i++];
         const proto = actor.prototypeToken.toObject();
         tokens.push({
           ...proto,
@@ -304,7 +309,7 @@ async function build(siteId, { notify = true } = {}) {
       if (!src) { console.warn(`${MODULE_ID} | no item "${l.name}" in the world`); continue; }
       for (let k = 0; k < l.qty; k++) { const o = src.toObject(); delete o._id; items.push(o); }
     }
-    const at = spots[i++] || room.centre;
+    const at = spots[Math.min(i, spots.length - 1)] || room.centre;
     const proto = cache.prototypeToken.toObject();
     tokens.push({
       ...proto,

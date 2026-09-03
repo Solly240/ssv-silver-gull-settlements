@@ -189,7 +189,11 @@
         const lead = pool[Math.floor(rng() * pool.length) | 0] || roster[0];
 
         // Seven players plus a dozen monsters is a forty-minute round. Cap the bodies.
-        const HEAD_CAP = 8;
+        //
+        // The cap has to account for the WHOLE room: two enemy groups plus a loot cache all
+        // stand on the same floor, and asking for more tokens than the room has cells leaves
+        // the overflow piled on one square.
+        const HEAD_CAP = Math.max(1, Math.min(8, room.area - 1));
         const cap = Math.max(1, Math.min(boss ? 3 : 6, Math.floor(room.area / 2), HEAD_CAP));
         const adj = (list) => {
           const heads = list.reduce((n2, e) => n2 + e.count, 0);
