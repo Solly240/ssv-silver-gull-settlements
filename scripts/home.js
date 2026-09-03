@@ -59,6 +59,9 @@ const CSS = `
 #${BAR_ID} .t{font-size:12px;}
 #${BAR_ID} .k{position:absolute;top:7px;right:9px;font-size:11px;opacity:.45;
   border:1px solid rgba(95,208,196,.35);border-radius:5px;padding:1px 5px;line-height:1.3;}
+/* The macro hotbar sits exactly where the launchers go and shows through them. There are
+   no macros to press on a static home screen, so take it out of the way while we are here. */
+body.ssvset-at-home #hotbar{display:none;}
 @media (max-width:1100px){#${BAR_ID} button{min-width:96px;min-height:88px;}
   #${BAR_ID} .g{font-size:26px;}}
 @media (max-width:820px){#${BAR_ID} button{min-width:70px;min-height:70px;padding:10px;}
@@ -77,10 +80,12 @@ const isHome = () => !!canvas?.scene?.getFlag(MODULE_ID, "homeScene");
 
 function removeBar() {
   document.getElementById(BAR_ID)?.remove();
+  document.body.classList.remove("ssvset-at-home");
 }
 
 function drawBar() {
   removeBar();
+  document.body.classList.toggle("ssvset-at-home", isHome());
   if (!isHome()) return;
   ensureStyles();
   const bar = document.createElement("div");
