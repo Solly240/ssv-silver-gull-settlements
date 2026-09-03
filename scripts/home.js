@@ -39,41 +39,46 @@ function pressKey(code) {
 }
 
 const CSS = `
-#${BAR_ID}{position:fixed;left:26px;top:50%;transform:translateY(-50%);z-index:28;
-  width:246px;padding:16px 14px 13px;border-radius:16px;
-  background:linear-gradient(180deg,rgba(6,17,26,.82),rgba(3,10,17,.88));
+/* Rows are DIVs, not BUTTONs. Foundry styles every button in the application heavily —
+   min-height, flex, padding, background — and those rules won every specificity fight,
+   which collapsed the rows on top of each other. */
+#${BAR_ID}{position:fixed;left:190px;top:50%;transform:translateY(-50%);z-index:28;
+  width:272px;padding:20px 16px 15px;border-radius:16px;box-sizing:border-box;
+  background:linear-gradient(180deg,rgba(6,17,26,.84),rgba(3,10,17,.9));
   border:1px solid rgba(95,208,196,.26);
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   box-shadow:0 18px 50px rgba(0,0,0,.6), inset 0 1px 0 rgba(140,235,225,.12);
   font-family:'Courier New',monospace;pointer-events:auto;}
+#${BAR_ID} *{box-sizing:border-box;}
 #${BAR_ID} .hd{font-size:10px;letter-spacing:.3em;text-transform:uppercase;
-  color:rgba(95,208,196,.75);padding:0 4px 11px;border-bottom:1px solid rgba(95,208,196,.16);
-  margin-bottom:9px;}
-#${BAR_ID} .row{display:flex;align-items:center;gap:12px;width:100%;
-  padding:9px 8px;margin:0;border:0;border-radius:10px;cursor:pointer;
-  background:transparent;color:#cfeae6;font-family:inherit;text-align:left;
+  color:rgba(95,208,196,.75);padding:0 4px 13px;
+  border-bottom:1px solid rgba(95,208,196,.16);margin:0 0 11px;white-space:nowrap;}
+#${BAR_ID} .row{display:flex;align-items:center;gap:13px;width:100%;min-height:56px;
+  padding:9px 8px;border-radius:10px;cursor:pointer;background:transparent;
   transition:background .13s ease, transform .13s ease;}
+#${BAR_ID} .row + .row{margin-top:4px;}
 #${BAR_ID} .row:hover{background:rgba(95,208,196,.1);transform:translateX(3px);}
 #${BAR_ID} .row:hover .cap{border-color:rgba(95,208,196,.85);color:#eafffb;
   box-shadow:0 0 14px rgba(95,208,196,.35), inset 0 1px 0 rgba(200,255,250,.35);}
-#${BAR_ID} .cap{flex:0 0 34px;height:34px;display:flex;align-items:center;justify-content:center;
-  border-radius:8px;font-size:16px;font-weight:700;color:#9fe8de;
+#${BAR_ID} .cap{flex:0 0 38px;width:38px;height:38px;display:flex;align-items:center;
+  justify-content:center;border-radius:9px;font-size:17px;font-weight:700;color:#9fe8de;
   background:linear-gradient(180deg,rgba(22,58,74,.95),rgba(8,24,34,.95));
   border:1px solid rgba(95,208,196,.42);
   box-shadow:inset 0 1px 0 rgba(160,255,245,.22), 0 2px 5px rgba(0,0,0,.5);
   transition:border-color .13s ease, box-shadow .13s ease, color .13s ease;}
-#${BAR_ID} .tx{min-width:0;}
-#${BAR_ID} .lb{display:block;font-size:12.5px;letter-spacing:.13em;text-transform:uppercase;
-  line-height:1.25;}
-#${BAR_ID} .ht{display:block;font-size:10.5px;letter-spacing:.04em;color:rgba(160,196,192,.62);
-  text-transform:none;margin-top:2px;}
+#${BAR_ID} .tx{flex:1 1 auto;min-width:0;}
+#${BAR_ID} .lb{display:block;font-size:13px;letter-spacing:.12em;text-transform:uppercase;
+  color:#dff3f0;line-height:1.3;white-space:nowrap;}
+#${BAR_ID} .ht{display:block;font-size:10.5px;letter-spacing:.02em;
+  color:rgba(160,196,192,.62);line-height:1.35;margin-top:3px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;}
 #${BAR_ID} .ft{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
-  color:rgba(160,196,192,.4);padding:10px 4px 0;margin-top:7px;
-  border-top:1px solid rgba(95,208,196,.13);}
-/* The macro hotbar is dead weight on a static home screen, and the sidebar crowds the art. */
+  color:rgba(160,196,192,.4);padding:12px 4px 0;margin-top:9px;
+  border-top:1px solid rgba(95,208,196,.13);white-space:nowrap;}
+/* The macro hotbar is dead weight on a static home screen. */
 body.ssvset-at-home #hotbar{display:none;}
-@media (max-height:620px){#${BAR_ID} .ht{display:none;} #${BAR_ID} .row{padding:7px 8px;}}
-@media (max-width:900px){#${BAR_ID}{width:auto;} #${BAR_ID} .tx{display:none;}}
+@media (max-height:640px){#${BAR_ID} .ht{display:none;} #${BAR_ID} .row{min-height:46px;}}
+@media (max-width:1000px){#${BAR_ID}{left:96px;}}
 `;
 
 function ensureStyles() {
@@ -102,12 +107,12 @@ function drawBar() {
   bar.innerHTML =
     `<div class="hd">SSV Silver Gull</div>` +
     live.map((l) => `
-    <button class="row" data-mod="${l.id}" title="${l.label} — press ${l.key}">
+    <div class="row" role="button" tabindex="0" data-mod="${l.id}" title="${l.label} — press ${l.key}">
       <span class="cap">${l.key}</span>
       <span class="tx"><span class="lb">${l.label}</span><span class="ht">${l.hint}</span></span>
-    </button>`).join("") +
+    </div>`).join("") +
     `<div class="ft">Press the key or click</div>`;
-  bar.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+  bar.querySelectorAll(".row").forEach((b) => b.addEventListener("click", () => {
     const l = LAUNCHERS.find((x) => x.id === b.dataset.mod);
     const mod = game.modules.get(l.id);
     try { l.open(mod); }
