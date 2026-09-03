@@ -140,8 +140,9 @@ async function ensureHomeScene({ activate = false } = {}) {
 
   if (scene) {
     // Bring an existing home scene up to the current shape rather than making a second one.
-    if (scene.width !== width || scene.height !== height || scene.padding !== 0) {
-      await scene.update({ width, height, padding: 0 });
+    if (scene.width !== width || scene.height !== height || scene.padding !== 0
+        || scene.backgroundColor !== "#05121c") {
+      await scene.update({ width, height, padding: 0, backgroundColor: "#05121c" });
     }
     const tile = scene.tiles.find((t) => t.getFlag(MODULE_ID, "mapBackground"));
     if (tile) {
@@ -167,6 +168,7 @@ async function ensureHomeScene({ activate = false } = {}) {
       environment: { globalLight: { enabled: true }, darknessLevel: 0 },
       navigation: true,
       navName: "The Gull",
+      backgroundColor: "#05121c",   // what shows around the picture once it is fitted
       ownership: { default: CONST.DOCUMENT_OWNERSHIP_LEVELS.OBSERVER },
       flags: { [MODULE_ID]: { homeScene: true } },
     };
@@ -186,45 +188,69 @@ async function ensureHomeScene({ activate = false } = {}) {
 }
 
 /**
- * Fill the window with the picture and keep it there.
+ * The whole picture, with a little air around it.
  *
- * `cover` rather than `contain`: contain letterboxes, which is the black surround. This
- * crops a little off the long edge instead, and the art was composed with room to lose.
+ * `contain` rather than `cover`: cover fills the window but crops the top and bottom of the
+ * bridge off, and the point of this screen is the view out of the window.
  */
-function fitView() {
-  if (!isHome() || !canvas?.ready) return;
+function targetView() {
   const s = canvas.scene;
   const w = window.innerWidth || 1920;
   const h = window.innerHeight || 1080;
-  const scale = Math.max(w / s.width, h / s.height);
-  canvas.pan({ x: s.width / 2, y: s.height / 2, scale });
+  const scale = Math.min(w / s.width, h / s.height) * 0.98;
+  return { x: s.width / 2, y: s.height / 2, scale };
+}
+
+function fitView() {
+  if (!isHome() || !canvas?.ready) return;
+  (canvas.__ssvOrigPan || canvas.pan.bind(canvas))(targetView());
 }
 
 /**
- * The home screen is a picture with buttons on it, not a map — dragging it around only ever
- * reveals the edge of the art. Swallow the gestures that move the camera while we are here.
+ * Lock the camera by owning `canvas.pan`.
+ *
+ * Swallowing wheel and drag events on the canvas element was not enough — Foundry pans from
+ * several places (wheel, middle-drag, left-drag on empty space, arrow keys, the compendium
+ * "pan to" calls), and each one that did not go through those listeners still moved the
+ * view. Every one of them ends at `canvas.pan()`, so that is where the lock belongs: any
+ * request to move, from anywhere, resolves to the same fixed view.
  */
-let _pinned = null;
+let _unlock = null;
 function pinView() {
   unpinView();
-  if (!isHome()) return;
-  const view = canvas?.app?.view;
-  if (!view) return;
-  const swallow = (e) => { e.preventDefault(); e.stopPropagation(); };
-  // Middle and right drag are Foundry's pan; the wheel is its zoom.
-  const onPointer = (e) => { if (e.button === 1 || e.button === 2) swallow(e); };
-  view.addEventListener("wheel", swallow, { capture: true, passive: false });
-  view.addEventListener("pointerdown", onPointer, { capture: true });
+  if (!isHome() || !canvas?.ready) return;
+
+  if (!canvas.__ssvOrigPan) canvas.__ssvOrigPan = canvas.pan.bind(canvas);
+  const orig = canvas.__ssvOrigPan;
+  canvas.pan = () => orig(targetView());
+
+  // Belt and braces: anything that moves the stage directly gets snapped back.
+  let snapping = false;
+  const onPan = () => {
+    if (snapping || !isHome()) return;
+    const t = targetView();
+    if (Math.abs(canvas.stage.scale.x - t.scale) < 1e-4
+      && Math.abs(canvas.stage.pivot.x - t.x) < 0.5
+      && Math.abs(canvas.stage.pivot.y - t.y) < 0.5) return;
+    snapping = true;
+    orig(t);
+    snapping = false;
+  };
+  Hooks.on("canvasPan", onPan);
   const onResize = () => fitView();
   window.addEventListener("resize", onResize);
-  _pinned = () => {
-    view.removeEventListener("wheel", swallow, { capture: true });
-    view.removeEventListener("pointerdown", onPointer, { capture: true });
+
+  _unlock = () => {
+    if (canvas.__ssvOrigPan) canvas.pan = canvas.__ssvOrigPan;
+    Hooks.off("canvasPan", onPan);
     window.removeEventListener("resize", onResize);
   };
-  fitView();
+  orig(targetView());
 }
-function unpinView() { if (_pinned) { _pinned(); _pinned = null; } }
+
+function unpinView() {
+  if (_unlock) { _unlock(); _unlock = null; }
+}
 
 Hooks.on("canvasReady", () => { drawBar(); pinView(); });
 Hooks.on("canvasTearDown", () => unpinView());
