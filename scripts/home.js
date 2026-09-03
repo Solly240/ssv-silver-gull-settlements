@@ -188,16 +188,17 @@ async function ensureHomeScene({ activate = false } = {}) {
 }
 
 /**
- * The whole picture, with a little air around it.
+ * Fill the window edge to edge.
  *
- * `contain` rather than `cover`: cover fills the window but crops the top and bottom of the
- * bridge off, and the point of this screen is the view out of the window.
+ * `cover`, not `contain`: contain fits the whole picture but leaves bands of empty scene
+ * down the sides, and the UI floats over the canvas anyway, so there is nothing gained by
+ * keeping every pixel of the art on screen. A little crop off the long edge is the price.
  */
 function targetView() {
   const s = canvas.scene;
   const w = window.innerWidth || 1920;
   const h = window.innerHeight || 1080;
-  const scale = Math.min(w / s.width, h / s.height) * 0.98;
+  const scale = Math.max(w / s.width, h / s.height);
   return { x: s.width / 2, y: s.height / 2, scale };
 }
 
