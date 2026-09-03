@@ -105,11 +105,11 @@ async function ensureHomeScene({ activate = false } = {}) {
   const hasBackground = "background" in Scene.implementation.schema.fields;
 
   if (!scene) {
-    let folder = game.folders.find((f) => f.type === "Scene" && f.name === "Campaign — Ship & Space");
-    if (!folder) folder = await Folder.create({ name: "Campaign — Ship & Space", type: "Scene" });
     const data = {
       name: "SSV Silver Gull",
-      folder: folder.id,
+      folder: null,                       // deliberately loose in the Scenes tab: it is the default,
+                                          // not a member of any set of maps
+
       width, height, padding: 0,
       grid: { type: CONST.GRID_TYPES.GRIDLESS, size: 100 },
       tokenVision: false,

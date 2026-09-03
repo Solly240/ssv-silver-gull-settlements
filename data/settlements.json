@@ -321,17 +321,6 @@
         "personality": "Reads a stranger before they reach the counter and prices them accordingly. Genuinely likes people; will still take your money.",
         "voice": "Slow, warm, and entirely unbothered. Long pauses you will want to fill."
        },
-       "quests": [
-        {
-         "id": "frostwatch-cantina",
-         "summary": "A spacer shipped out owing him a considerable tab. He is not angry about it \u2014 he just wants it settled, and he will trade what he knows about the moon for it. He also has a drunk in the corner he would like moved.",
-         "opening": "There's a tab on my board nobody's paid. Man shipped out and left it.",
-         "reward": {
-          "gold": 60,
-          "note": "Everything he knows about the other two settlements and the signal."
-         }
-        }
-       ],
        "blurb": "Broad, unhurried, and missing two fingers on the pouring hand. Has run the Tab for eleven years and can price a stranger before they reach the counter.",
        "talkingPoints": [
         "You'll be the ones who came down hard on the north flats. Heard your engines from here.",
@@ -342,24 +331,85 @@
         "Something out on the ice has been transmitting since before I got here. Nobody's ever gone to look twice.",
         "There's people living in the glacier east of here. They come in once a season, buy filters, say nothing.",
         "The administrator's reactor is browning out. She won't say it, but she's frightened."
+       ],
+       "quests": [
+        {
+         "id": "cartographer",
+         "summary": "Every rumour on this moon says the same name: Wrenn Sallow, a surveyor at Sett who charted the whole Erevos Reach and never sold the chart. Sallis knows how to get an introduction.",
+         "opening": "You are asking the wrong question. You do not want a map of this moon. You want Wrenn Sallow, out at Sett, and you want to arrive owing them nothing.",
+         "reward": {
+          "gold": 0,
+          "note": "The complete Erevos Reach chart \u2014 every region named on the Map."
+         }
+        }
        ]
       },
       {
        "key": "merrow-vane",
-       "post": "2",
        "name": "Merrow Vane",
        "role": "Drunk prospector",
        "portrait": "assets/portraits/merrow-vane.webp",
+       "blurb": "Three drinks past sensible and delighted to see new faces. Was a good surveyor once.",
        "wander": true,
        "radius": 4,
-       "blurb": "Three drinks past sensible and delighted to see new faces. Was a good surveyor once.",
+       "dossier": {
+        "race": "Human",
+        "age": "Fifties",
+        "stats": "AC 10 \u00b7 HP 14 \u00b7 Survival +5",
+        "look": "Weathered, red-nosed, wearing a survey coat two grades better than he can afford now.",
+        "personality": "Warm, over-familiar, and genuinely brilliant for about ninety seconds at a time.",
+        "voice": "Loud, then suddenly very quiet and precise when the subject turns to the ice."
+       },
        "talkingPoints": [
-        "You want to know about the ice? I'll tell you about the ice."
+        "I mapped this moon before there was a pad on it. Ask me anything.",
+        "The rings eat signals. That's not weather. That's something sitting in them."
        ],
        "rumours": [
-        "I mapped the whole eastern shelf. There's a hollow under it. Sounds wrong when you drill.",
-        "Kesh at the yard has something in the back he won't put on the shelf."
+        "There's a hollow under the Bonefield. I've heard it breathe."
        ]
+      },
+      {
+       "key": "ferren-ost",
+       "name": "Sub-Commander Ferren Ost",
+       "role": "Iron Directorate liaison",
+       "portrait": "assets/portraits/ferren-ost.webp",
+       "blurb": "Directorate uniform under a civilian coat, drinking alone and making no secret of either.",
+       "wander": false,
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Late forties",
+        "stats": "AC 16 \u00b7 HP 44 \u00b7 Intimidation +5",
+        "look": "Rigid posture, grey at the temples, a Directorate sunburst worn where it can be seen.",
+        "personality": "Courteous, direct, and entirely uninterested in whether you like the Directorate. Treats a mercenary contract as the honest transaction it is.",
+        "voice": "Clipped, formal, no wasted words. Says 'thank you' like a closing statement."
+       },
+       "talkingPoints": [
+        "The Directorate does not have jurisdiction here. That is precisely why I am asking you.",
+        "There is an Apostle vessel using this volume as a censer route. I want it stopped.",
+        "You will be paid in Directorate scrip, honoured at any Frostwatch trade post."
+       ],
+       "rumours": [
+        "The Apostles rig their hulls to burn. Boarding one is a way to die twice."
+       ],
+       "quests": [
+        {
+         "id": "apostle-censer",
+         "summary": "An Apostles of the Threshold cutter, the Censer, is using the Vorrn volume as a burn route and taking ships off it. The Directorate has no jurisdiction here, which is exactly why Ost is hiring outsiders to do it.",
+         "opening": "You have a ship with guns and no flag. I have a target and no jurisdiction. I would call that a productive misunderstanding, Captain.",
+         "reward": {
+          "gold": 900,
+          "item": "res:concord-naval-fuel-bar",
+          "qty": 2,
+          "note": "Directorate scrip, honoured at any Frostwatch post.",
+          "standing": {
+           "faction": "iron-directorate",
+           "delta": 2
+          }
+         }
+        }
+       ],
+       "quest": true
       },
       {
        "key": "tab-regular-1",
@@ -371,27 +421,27 @@
       },
       {
        "key": "tab-regular-2",
-       "spawnArea": "b",
+       "spawnArea": "a",
        "name": "Regular",
        "wander": true,
        "crowd": true,
        "radius": 5
       },
       {
-       "key": "tab-regular-3",
-       "spawnArea": "c",
+       "key": "tab-offshift-1",
+       "spawnArea": "a",
        "name": "Off-shift hand",
        "wander": true,
        "crowd": true,
-       "radius": 6
+       "radius": 5
       },
       {
-       "key": "tab-regular-4",
-       "spawnArea": "d",
+       "key": "tab-offshift-2",
+       "spawnArea": "a",
        "name": "Off-shift hand",
        "wander": true,
        "crowd": true,
-       "radius": 6
+       "radius": 5
       }
      ]
     },
@@ -649,6 +699,55 @@
        ],
        "rumours": [
         "The glacier folk buy filters by the crate. Somebody out there has a lot of mouths."
+       ],
+       "quest": false
+      },
+      {
+       "key": "pell-ashgrove",
+       "name": "Pell Ashgrove",
+       "role": "Freight broker",
+       "portrait": "assets/portraits/pell-ashgrove.webp",
+       "blurb": "Buys cargo space nobody has sold yet and somehow always delivers.",
+       "wander": true,
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Thirties",
+        "stats": "AC 11 \u00b7 HP 18 \u00b7 Persuasion +6",
+        "look": "Small, immaculate in a place where nobody is, gloves that have never touched cargo.",
+        "personality": "Relentlessly cheerful and quietly ruthless. Will find you a berth and a reason to owe him.",
+        "voice": "Fast, friendly, faintly nasal. Talks in shipping terms even about the weather."
+       },
+       "talkingPoints": [
+        "Everything on this moon moves through three people. I am two of them.",
+        "You have a hold. I have clients. This is the beginning of something."
+       ],
+       "rumours": [
+        "A Directorate officer has been buying passage manifests. Not cargo. Manifests."
+       ]
+      },
+      {
+       "key": "sable-innes",
+       "name": "Sable Innes",
+       "role": "Ice courier",
+       "portrait": "assets/portraits/sable-innes.webp",
+       "blurb": "Runs the surface routes between the outpost and the Hollow on a patched-up crawler.",
+       "wander": true,
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Late twenties",
+        "stats": "AC 13 \u00b7 HP 22 \u00b7 Survival +5",
+        "look": "Windburned, goggle-tanned, thermal layers gone shiny at the elbows.",
+        "personality": "Blunt and unsentimental about distance, weather and the odds. Likes anyone who can read ice.",
+        "voice": "Flat, quick, with the clipped cadence of somebody used to a bad comm channel."
+       },
+       "talkingPoints": [
+        "Kettle Hollow will not open the gate for you. They open it for me.",
+        "Route's four hours if the wind holds. Eleven if it doesn't. Pack accordingly."
+       ],
+       "rumours": [
+        "The Hollow's people stopped digging below the hall. Nobody there will tell me why."
        ]
       },
       {
@@ -660,20 +759,20 @@
        "radius": 5
       },
       {
-       "key": "post-browser-2",
-       "spawnArea": "b",
+       "key": "post-hand-1",
+       "spawnArea": "a",
        "name": "Dock hand",
        "wander": true,
        "crowd": true,
-       "radius": 6
+       "radius": 5
       },
       {
-       "key": "post-browser-3",
-       "spawnArea": "c",
-       "name": "Survey tech",
+       "key": "post-hand-2",
+       "spawnArea": "a",
+       "name": "Dock hand",
        "wander": true,
        "crowd": true,
-       "radius": 6
+       "radius": 5
       }
      ]
     },
@@ -875,19 +974,6 @@
         "personality": "Straight dealer, no small talk, quietly proud of the yard. Knows the provenance of every plate in it and will tell you at length.",
         "voice": "Flat and practical. Says the price once."
        },
-       "quests": [
-        {
-         "id": "long-salvage",
-         "summary": "He will sell pick rights to the wreck field by the hour \u2014 but there is a piece in the back he cannot identify, and he wants someone who has seen more of the galaxy than he has to tell him what it is.",
-         "opening": "I've a piece in the back I can't identify. Not Concord. Not anything.",
-         "reward": {
-          "gold": 100,
-          "item": "res:promethium-jug",
-          "qty": 1,
-          "note": "Free pick rights for a day, and the unidentified piece if they name it."
-         }
-        }
-       ],
        "blurb": "Wrapped in three coats and a welding rig. Knows the provenance of every plate in the yard.",
        "talkingPoints": [
         "Pick rights are by the hour. Cut what you like, I weigh it on the way out.",
@@ -896,31 +982,84 @@
        "rumours": [
         "I've a piece in the back I can't identify. Not Concord. Not anything.",
         "Ilsa's missing rover \u2014 I'd look east, and I'd take a gun."
+       ],
+       "quests": [
+        {
+         "id": "bonefield-underhang",
+         "summary": "A hull section finally went through the ice at the back of the yard and opened a void underneath it. Kesh sent two cutters down. Neither came back and he has stopped sending people.",
+         "opening": "You want salvage rights? Fine. There is a hole at the back of my yard and two of my people are in it. Bring them up \u2014 or bring up what is left \u2014 and the yard is open to you.",
+         "reward": {
+          "gold": 350,
+          "item": "res:promethium-core-drum",
+          "qty": 1,
+          "note": "Free run of the Bonefield, and Torrin will cut anything you drag out."
+         }
+        }
        ]
       },
       {
-       "key": "yard-cutter",
-       "post": "2",
-       "name": "Yard cutter",
+       "key": "torrin-vey",
+       "name": "Torrin Vey",
+       "role": "Yard cutter",
+       "portrait": "assets/portraits/torrin-vey.webp",
+       "blurb": "Cuts hulls apart for a living and has the scars to show for the ones that fought back.",
        "wander": true,
-       "crowd": true,
-       "radius": 6
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Forties",
+        "stats": "AC 14 \u00b7 HP 38 \u00b7 Athletics +6",
+        "look": "Enormous, soot-black to the elbows, welding rig slung permanently over one shoulder.",
+        "personality": "Slow to speak, impossible to rush, and unexpectedly gentle with anyone new to the yard.",
+        "voice": "Deep, unhurried, with long gaps you should not fill."
+       },
+       "talkingPoints": [
+        "Two of ours went into the underhang. Neither came back up.",
+        "I'll cut anything you like. I won't go below the fence line again."
+       ],
+       "rumours": [
+        "The wrecks nearest the hole have been stripped from the inside."
+       ]
+      },
+      {
+       "key": "mave-okonu",
+       "name": "Mave Okonu",
+       "role": "Scrap assayer",
+       "portrait": "assets/portraits/mave-okonu.webp",
+       "blurb": "Can price a hull plate at a glance and will tell you exactly how she got the number.",
+       "wander": true,
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Thirties",
+        "stats": "AC 12 \u00b7 HP 20 \u00b7 Investigation +6",
+        "look": "Sharp-eyed, coat covered in chalk marks, a loupe on a cord around her neck.",
+        "personality": "Precise, dry, allergic to exaggeration. Respects anyone who shows their working.",
+        "voice": "Measured and a little amused, like everything is slightly beneath her but not you personally."
+       },
+       "talkingPoints": [
+        "Ferrocrystal, verdite, Concord alloy. I can tell them apart in the dark. Usually am.",
+        "Kesh pays by the tonne. I price by the truth. We argue."
+       ],
+       "rumours": [
+        "Something in the underhang is not wreckage. The assay comes back wrong."
+       ]
       },
       {
        "key": "yard-hand-1",
-       "spawnArea": "b",
+       "spawnArea": "a",
        "name": "Yard hand",
        "wander": true,
        "crowd": true,
-       "radius": 7
+       "radius": 5
       },
       {
        "key": "yard-hand-2",
-       "spawnArea": "c",
+       "spawnArea": "a",
        "name": "Yard hand",
        "wander": true,
        "crowd": true,
-       "radius": 7
+       "radius": 5
       }
      ]
     },
@@ -1172,61 +1311,90 @@
      "npcs": [
       {
        "key": "ilsa-varn",
-       "post": "1",
        "name": "Ilsa Varn",
        "role": "Outpost administrator",
-       "actor": "Ilsa Varn",
        "portrait": "assets/portraits/ilsa-varn.webp",
+       "blurb": "Runs Frostwatch Landing on paperwork, stubbornness and a fusion tap that keeps browning out.",
        "wander": false,
-       "quest": true,
+       "radius": 4,
        "dossier": {
         "race": "Human",
-        "age": "Late fifties",
-        "stats": "AC 12 \u00b7 HP 22 \u00b7 Wis +3 \u00b7 Investigation +5, Technology +6",
-        "look": "Grey at the temples, three days without proper sleep, a survey company coat with the insignia unpicked. One hand never quite still.",
-        "personality": "Competent and frightened, and would much rather you noticed the first. Gives orders out of habit to people who do not work for her.",
-        "voice": "Clipped and formal. Answers the question you should have asked, not the one you did."
+        "age": "Fifties",
+        "stats": "AC 12 \u00b7 HP 26 \u00b7 Insight +5",
+        "look": "Tired, upright, a coat she never takes off indoors because the hab is never warm enough.",
+        "personality": "Fair, overworked, and entirely out of patience for anyone who makes her day longer. Will deal straight with you if you deal straight with her.",
+        "voice": "Even and dry, with the flatness of somebody who has said the same thing many times."
        },
+       "talkingPoints": [
+        "Nobody owns this outpost. That means nobody fixes it either. That is where you come in.",
+        "There is a wreck out on the ice broadcasting the same six seconds. It predates all of us.",
+        "I can pay, or I can owe you. Owing me is worth more here than coin."
+       ],
+       "rumours": [
+        "The beacon out on the ice changed pattern last week. Only once. Only I noticed."
+       ],
        "quests": [
         {
-         "id": "frostwatch-trouble",
-         "summary": "The outpost's fusion tap is browning out and she has no parts and no engineer. She needs the couplings reseated in the reactor housing under the main hab \u2014 cold, cramped, and iced over.",
-         "opening": "You have a ship. That already makes you the most useful thing to land here this year.",
+         "id": "the-long-silence",
+         "summary": "A hauler went down on the ice north of the pads before Frostwatch existed and has been repeating the same six seconds ever since. Ilsa wants it shut up, and wants to know what it is before the Frostwatch decide it is their business.",
+         "opening": "Sit down. There is a wreck four hours north that has been talking to nobody since before I got here. Last week it changed. Once. I would like to know why.",
          "reward": {
-          "gold": 150,
-          "item": "res:promethium-jug",
-          "qty": 2,
-          "note": "Salvage-pick rights across the whole shelf \u2014 worth more than the coin."
-         }
-        },
-        {
-         "id": "trace-signal",
-         "summary": "She logs every transmission that crosses the moon. There is one she has never been able to file, coming from the ice to the east. She will hand over the logs if someone will go and look.",
-         "opening": "I log every transmission. There is one I have never been able to file.",
-         "reward": {
-          "gold": 0,
-          "note": "Her transmission logs, and whatever is out there."
+          "gold": 400,
+          "item": "res:hyperfold-half-cell",
+          "qty": 1,
+          "note": "Outpost goodwill, and Ilsa owes you one \u2014 which is worth more here."
          }
         }
        ],
-       "blurb": "Rattled and hiding it badly. Running an outpost on a failing fusion tap and no help coming.",
+       "quest": true
+      },
+      {
+       "key": "doss-carrow",
+       "name": "Doss Carrow",
+       "role": "Records clerk",
+       "portrait": "assets/portraits/doss-carrow.webp",
+       "blurb": "Keeps forty years of outpost records in his head because the terminal keeps failing.",
+       "wander": true,
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Sixties",
+        "stats": "AC 10 \u00b7 HP 12 \u00b7 History +6",
+        "look": "Thin, ink-stained, half-moon lenses, a scarf indoors.",
+        "personality": "Fussy, proud of the archive, and desperate for someone to be interested in it.",
+        "voice": "Quick and reedy, prone to tangents he apologises for and then continues."
+       },
        "talkingPoints": [
-        "You have a ship. That already makes you the most useful thing to land here this year.",
-        "The fusion tap is browning out. I need parts I cannot get and cannot pay for.",
-        "A supply rover went east eleven days ago and did not come back. Two people on it."
+        "Every ship that has ever landed here is in this room. On paper. I did that.",
+        "You want the wreck? I have the original distress log. Nobody has asked in nine years."
        ],
        "rumours": [
-        "I log every transmission. There is one I have never been able to file.",
-        "Salvage-pick rights across the whole shelf are mine to grant. They are worth more than money to the right crew."
+        "There is no registry entry for Kettle Hollow. There never has been."
        ]
       },
       {
-       "key": "hab-clerk",
-       "post": "2",
-       "name": "Records clerk",
+       "key": "hela-brant",
+       "name": "Hela Brant",
+       "role": "Frostwatch constable",
+       "portrait": "assets/portraits/hela-brant.webp",
+       "blurb": "The Frostwatch's presence at the outpost, and deeply unconvinced by anything rift-touched.",
        "wander": true,
-       "crowd": true,
-       "radius": 4
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Forties",
+        "stats": "AC 17 \u00b7 HP 34 \u00b7 Perception +5",
+        "look": "Grey patrol armour, helmet under one arm, a stare she uses instead of questions.",
+        "personality": "Suspicious by trade rather than temperament. Correct, never warm, and absolutely reliable.",
+        "voice": "Level, unhurried, the tone of somebody who has already decided and is being polite about it."
+       },
+       "talkingPoints": [
+        "You came out of a rift. That is on your file now. It will stay there.",
+        "Cause trouble on my ice and I will not care where you are from."
+       ],
+       "rumours": [
+        "The Directorate officer in the Tab has no business here. I have asked. He has answers."
+       ]
       }
      ]
     },
@@ -1447,15 +1615,64 @@
        ],
        "rumours": [
         "The glacier colony sends someone for medical supplies. Never the same person twice."
+       ],
+       "quest": false
+      },
+      {
+       "key": "yerin-solt",
+       "name": "Yerin Solt",
+       "role": "Frostbitten hauler",
+       "portrait": "assets/portraits/yerin-solt.webp",
+       "blurb": "Lost two fingers to the ice last month and is already arguing about going back out.",
+       "wander": false,
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Thirties",
+        "stats": "AC 11 \u00b7 HP 24 \u00b7 Constitution +3",
+        "look": "Bandaged hand, borrowed clothes, sitting on the edge of the bed rather than in it.",
+        "personality": "Restless, embarrassed to be here, and grateful in a way he cannot say out loud.",
+        "voice": "Rough and a bit too loud, softening whenever Corrin is in earshot."
+       },
+       "talkingPoints": [
+        "I was eleven hours on the surface. Corrin got there in nine.",
+        "Whatever's under the Bonefield, it's warm. That's why the ice gave."
+       ],
+       "rumours": [
+        "The meltwater at Kettle Hollow runs warm now. Ice doesn't do that on its own."
        ]
       },
       {
-       "key": "warm-patient",
+       "key": "nim-adeyemi",
+       "name": "Nim Adeyemi",
+       "role": "Trainee medic",
+       "portrait": "assets/portraits/nim-adeyemi.webp",
+       "blurb": "Two months into a posting she chose and is still, just about, glad she chose.",
+       "wander": true,
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Twenties",
+        "stats": "AC 12 \u00b7 HP 16 \u00b7 Medicine +5",
+        "look": "Young, braids tied back, sleeves permanently pushed up, moving quickly at all times.",
+        "personality": "Eager, competent past her experience, and quietly terrified of the day Corrin is not here.",
+        "voice": "Bright and fast, with a habit of narrating what she is doing to whoever is nearest."
+       },
+       "talkingPoints": [
+        "Cold injury, crush injury, decompression. That is the whole list. Over and over.",
+        "If you are going under the ice, take a warm pack each. I am not asking."
+       ],
+       "rumours": [
+        "Two yard cutters came in from the underhang. Only their gear came back."
+       ]
+      },
+      {
+       "key": "warm-patient-1",
        "spawnArea": "a",
        "name": "Patient",
        "wander": true,
        "crowd": true,
-       "radius": 3
+       "radius": 5
       }
      ]
     },
@@ -1643,6 +1860,55 @@
        ],
        "rumours": [
         "Ships come in dark sometimes and don't log. I don't ask and neither should you."
+       ],
+       "quest": false
+      },
+      {
+       "key": "bex-hallow",
+       "name": "Bex Hallow",
+       "role": "Pad marshal",
+       "portrait": "assets/portraits/bex-hallow.webp",
+       "blurb": "Decides who lands, who waits, and who is turned back into the weather.",
+       "wander": true,
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Forties",
+        "stats": "AC 13 \u00b7 HP 28 \u00b7 Perception +4",
+        "look": "High-vis over thermals, headset permanently on, clipboard she never actually reads.",
+        "personality": "Brisk and fair, with zero tolerance for pilots who argue with physics.",
+        "voice": "Loud over the wind, dry when it drops. Swears like the weather is personally at fault."
+       },
+       "talkingPoints": [
+        "Your ship's on my pad, so your ship's my problem. Let's keep it a small problem.",
+        "Nothing lands in a ring squall. Nothing. I don't care what you're carrying."
+       ],
+       "rumours": [
+        "Something burned through the upper ring two nights back and didn't answer hail."
+       ]
+      },
+      {
+       "key": "ruaridh-kane",
+       "name": "Ruaridh Kane",
+       "role": "Freelance pilot",
+       "portrait": "assets/portraits/ruaridh-kane.webp",
+       "blurb": "Grounded three weeks waiting on a part that Pell keeps promising is nearly here.",
+       "wander": true,
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Thirties",
+        "stats": "AC 12 \u00b7 HP 22 \u00b7 Piloting +6",
+        "look": "Flight jacket over a jumper, sitting on a crate, watching everyone else's ship.",
+        "personality": "Bored, chatty, and better than he lets on. Would fly anywhere for the right reason.",
+        "voice": "Easy and wry, with the fatalism of somebody who has been stranded before."
+       },
+       "talkingPoints": [
+        "Three weeks. On a moon. Ask me how the food is.",
+        "You need a second pilot, I'm cheap and I'm here. That's the whole pitch."
+       ],
+       "rumours": [
+        "There's an Apostle cutter working this volume. I've seen its burn twice."
        ]
       },
       {
@@ -1651,15 +1917,15 @@
        "name": "Pad crew",
        "wander": true,
        "crowd": true,
-       "radius": 6
+       "radius": 5
       },
       {
        "key": "pad-crew-2",
-       "spawnArea": "b",
+       "spawnArea": "a",
        "name": "Pad crew",
        "wander": true,
        "crowd": true,
-       "radius": 6
+       "radius": 5
       }
      ]
     },
@@ -1827,15 +2093,32 @@
        ],
        "rumours": [
         "There's a Concord surveyor holed up at Sett with a chart worth more than this moon."
-       ]
+       ],
+       "quest": false
       },
       {
-       "key": "shed-lookout",
-       "spawnArea": "b",
-       "name": "Lookout",
-       "wander": true,
-       "crowd": true,
-       "radius": 3
+       "key": "lin-serrada",
+       "name": "Lin Serrada",
+       "role": "Lookout",
+       "portrait": "assets/portraits/lin-serrada.webp",
+       "blurb": "Sits where she can see the fence line and says almost nothing to anyone who comes through.",
+       "wander": false,
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Twenties",
+        "stats": "AC 14 \u00b7 HP 20 \u00b7 Stealth +6",
+        "look": "Small, still, hood up, hands never visible.",
+        "personality": "Watchful and economical. Answers questions with the fewest words that will do.",
+        "voice": "Quiet, unhurried, with a flat certainty that makes people stop talking."
+       },
+       "talkingPoints": [
+        "He'll see you. Wait.",
+        "Whatever you brought, don't put it on the table until he asks."
+       ],
+       "rumours": [
+        "Two Directorate people came through last month. They didn't buy anything."
+       ]
       }
      ]
     }
@@ -1928,27 +2211,55 @@
      ],
      "npcs": [
       {
-       "key": "warden-a",
-       "post": "1",
-       "name": "Gate warden",
-       "role": "Warden",
+       "key": "warden-hesk",
+       "name": "Warden Hesk",
+       "role": "Gate warden",
+       "portrait": "assets/portraits/warden-hesk.webp",
+       "blurb": "Would very much rather you turned around, and will say so once, politely.",
        "wander": false,
-       "blurb": "Ice-crusted rebreather, old rifle, no interest in conversation.",
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Forties",
+        "stats": "AC 16 \u00b7 HP 30 \u00b7 Athletics +4",
+        "look": "Ice-crusted furs over colony plate, a spear-length cutting bar held like a formality.",
+        "personality": "Correct and immovable. Not hostile \u2014 simply certain that visitors end badly.",
+        "voice": "Low and careful, a colony accent that flattens its vowels."
+       },
        "talkingPoints": [
-        "Turn around.",
-        "You'll speak to her or you'll speak to no one."
+        "We are not on a registry. That is not an oversight.",
+        "You may enter. You may not go below the hall. Those are separate permissions."
+       ],
+       "rumours": [
+        "The last outsiders we let below did not come back up the same."
        ]
       },
       {
-       "key": "warden-b",
-       "post": "2",
-       "name": "Gate warden",
-       "role": "Warden",
+       "key": "warden-tuli",
+       "name": "Warden Tuli",
+       "role": "Gate warden",
+       "portrait": "assets/portraits/warden-tuli.webp",
+       "blurb": "Younger, curious about the outside, and trying hard not to show it.",
        "wander": false,
-       "blurb": "Younger. Keeps glancing at the older one."
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Twenties",
+        "stats": "AC 15 \u00b7 HP 24 \u00b7 Perception +3",
+        "look": "Furs a size too large, colony brand at the temple, eyes constantly on the visitors' gear.",
+        "personality": "Openly fascinated by anything off-world, then embarrassed about being fascinated.",
+        "voice": "Quick and slightly too eager, dropping back to formality when Hesk looks over."
+       },
+       "talkingPoints": [
+        "Is it true there are places with no ice at all? Anywhere?",
+        "Hesk says outsiders bring the cold in with them. I do not think that is how cold works."
+       ],
+       "rumours": [
+        "The Keeper has not been down to the cuts since the meltwater turned warm."
+       ]
       },
       {
-       "key": "gate-runner",
+       "key": "gate-runner-1",
        "spawnArea": "a",
        "name": "Runner",
        "wander": true,
@@ -2001,47 +2312,91 @@
      },
      "npcs": [
       {
-       "key": "colony-leader",
-       "post": "1",
+       "key": "hollow-keeper",
        "name": "The Hollow's Keeper",
        "role": "Colony leader",
+       "portrait": "assets/portraits/hollow-keeper.webp",
+       "blurb": "Speaks for a colony that is on no registry anywhere, and intends to keep it that way.",
        "wander": false,
-       "quest": true,
+       "radius": 4,
        "dossier": {
         "race": "Human",
-        "age": "Seventies",
-        "stats": "AC 10 \u00b7 HP 18 \u00b7 Wis +4 \u00b7 Insight +6, Persuasion +5",
-        "look": "Small, upright, wrapped in layered furs over a Concord-issue thermal suit.",
-        "personality": "Entirely used to deciding who lives here and who does not. Unhurried, unimpressed, and watching what you do with your hands.",
-        "voice": "Quiet. Never repeats herself."
+        "age": "Unclear",
+        "stats": "AC 13 \u00b7 HP 40 \u00b7 Insight +6",
+        "look": "Ageless, pale from a life under forty metres of ice, a staff of cut hull-metal.",
+        "personality": "Grave, hospitable, and absolutely unyielding about the colony's privacy. Carries the weight of a decision nobody else knows was made.",
+        "voice": "Slow and formal, choosing every word, with long silences that are not invitations."
        },
+       "talkingPoints": [
+        "We did not expect visitors and we are not pleased to have them. Sit anyway.",
+        "There are cuts below this hall. We closed them. I will tell you why if you agree to go.",
+        "What is down there was here before the ice. We only found it."
+       ],
+       "rumours": [
+        "The meltwater runs warm from below. It has done since we stopped digging."
+       ],
        "quests": [
         {
-         "id": "kettle-trade",
-         "summary": "The colony needs medicine, reactor parts and water filters, and has things to trade that are not on any manifest. She will not say where they came from.",
-         "opening": "We are not on your charts because we asked not to be.",
+         "id": "kettle-deep",
+         "summary": "The colony cut down through the glacier for years and then stopped. The Keeper closed the lower cuts, lost two people doing it, and has told nobody outside the Hollow why. The meltwater from below still runs warm.",
+         "opening": "We closed the cuts beneath this hall and I have not explained that to anyone who was not born here. I am about to explain it to you, and then I am going to ask you to go down.",
          "reward": {
-          "gold": 200,
-          "note": "Trade access to the Hollow, and a cache of supplies from under the ice."
+          "gold": 250,
+          "item": "res:verdite-fuel-brick",
+          "qty": 2,
+          "note": "The Hollow opens its gate to you permanently \u2014 and its stores."
          }
         }
        ],
-       "blurb": "Old, unhurried, and entirely used to deciding who lives here.",
+       "quest": true
+      },
+      {
+       "key": "brann-ivory",
+       "name": "Brann Ivory",
+       "role": "Hall cook",
+       "portrait": "assets/portraits/brann-ivory.webp",
+       "blurb": "Feeds ninety people from what the ice and passing ships will give up.",
+       "wander": true,
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Fifties",
+        "stats": "AC 11 \u00b7 HP 22 \u00b7 Persuasion +3",
+        "look": "Broad, scalded forearms, an apron that has seen a decade of service.",
+        "personality": "Warm, gossipy, and the only person in the Hollow who will tell an outsider anything.",
+        "voice": "Cheerful and constant, talking while working and rarely waiting for answers."
+       },
        "talkingPoints": [
-        "We are not on your charts because we asked not to be.",
-        "We need medicine, reactor parts and water filters. We have things to trade that you have not seen."
+        "Eat. You have come a long way and you look it.",
+        "The Keeper will not speak of the cuts. I will, if you are eating my food."
        ],
        "rumours": [
-        "The signal in the ice was here before we were. We do not go that way."
+        "Sefa's crews found a door down there. Not carved. Made."
        ]
       },
       {
-       "key": "hollow-cook",
-       "post": "2",
-       "name": "Cook",
+       "key": "sefa-lund",
+       "name": "Sefa Lund",
+       "role": "Ice-cutter foreman",
+       "portrait": "assets/portraits/sefa-lund.webp",
+       "blurb": "Ran the crews that opened the lower cuts, and has not sent anyone down since.",
        "wander": true,
-       "crowd": true,
-       "radius": 5
+       "radius": 4,
+       "dossier": {
+        "race": "Human",
+        "age": "Forties",
+        "stats": "AC 14 \u00b7 HP 28 \u00b7 Athletics +5",
+        "look": "Rope-scarred hands, cutting harness still worn out of habit, never quite still.",
+        "personality": "Guilt-ridden and defensive. Wants somebody else to go down and confirm what she saw.",
+        "voice": "Terse, then suddenly far too much detail, then terse again."
+       },
+       "talkingPoints": [
+        "I took eleven people down. I brought back nine. Ask the Keeper about the other two.",
+        "The walls are not ice all the way down. That is all I will say standing up."
+       ],
+       "rumours": [
+        "It is warmer the deeper you go. That is backwards. That is the whole problem."
+       ]
       }
      ]
     }
