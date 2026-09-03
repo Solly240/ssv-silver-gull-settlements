@@ -26,7 +26,7 @@ const LAUNCHERS = [
     hint: "Quests, lore, standing",
     open: (m) => (typeof m.api?.open === "function" ? m.api.open() : pressKey("KeyJ")) },
   { id: "ssv-silver-gull-ship-combat", key: "S", label: "The Gull",
-    hint: "Ship and stations", open: (m) => m.api?.open?.() },
+    hint: "Cargo, and your station in a fight", open: (m) => m.api?.open?.() },
 ];
 // Trade (I) and Standing (P) are deliberately not here: a shop is reached by talking to its
 // keeper, and standing is a tab inside the journal. Both keys still work.
